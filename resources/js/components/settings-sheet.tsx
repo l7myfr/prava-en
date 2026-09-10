@@ -645,7 +645,16 @@ function ProfileView({
     const loadNativeFilePreview = useEffectEvent(async (path: string) => {
         try {
             console.log('Settings: Loading preview for:', path);
-            const url = `/native-file/preview?path=${encodeURIComponent(path)}`;
+            // The trailing parameter is load-bearing, not decoration. The
+            // Android web view decides whether a request is a static asset by
+            // testing whether the WHOLE url ends with an image extension,
+            // query string included (PHPWebViewClient.isStaticAssetExtension).
+            // A camera capture is `captured_<ms>.jpg`, so `?path=...jpg` was
+            // misread as an asset, missed on disk, and then re-sent to PHP with
+            // its query string appended a second time, which 404s. A gallery
+            // pick is `gallery_selected_<ms>` with no extension, which is the
+            // only reason that path ever worked. Keep `path` away from the end.
+            const url = `/native-file/preview?path=${encodeURIComponent(path)}&preview=1`;
             const response = await fetch(url);
 
             const data = await response.json();
