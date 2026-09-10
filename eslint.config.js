@@ -64,7 +64,18 @@ export default [
         files: ['**/*.{ts,tsx}'],
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js'],
+        // `nativephp` is generated: native:install regenerates the Android tree
+        // and the desktop build unpacks a whole copy of the app under
+        // nativephp/electron/dist. Linting that copy reported thousands of
+        // errors in vendored, minified JavaScript nobody here can fix.
+        ignores: [
+            'vendor',
+            'node_modules',
+            'public',
+            'nativephp',
+            'bootstrap/ssr',
+            'tailwind.config.js',
+        ],
     },
     prettier, // Turn off all rules that might conflict with Prettier
 ];

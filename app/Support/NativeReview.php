@@ -9,6 +9,14 @@ namespace App\Support;
  * by scripts/patch-nativephp-android.py. It is deliberately optional: a build
  * without the patch, an iOS build, or the browser during development all fail
  * the check below and let the caller fall back to opening the store listing.
+ *
+ * Note the guard is NOT `function_exists('nativephp_call')`. Since v4 the
+ * package defines a pure-PHP `nativephp_call` on every non-device host so that
+ * Jump can relay bridge traffic to an attached device over TCP. On the web
+ * build, and in a dev browser with no device attached, that polyfill exists and
+ * would open a socket instead of declining. `NATIVEPHP_RUNNING` is set by the
+ * on-device runtime itself before Laravel boots, so it is the only signal that
+ * actually means "there is native code underneath us".
  */
 class NativeReview
 {
@@ -27,7 +35,7 @@ class NativeReview
      */
     public static function request(): bool
     {
-        if (! function_exists('nativephp_call')) {
+        if (! env('NATIVEPHP_RUNNING') || ! function_exists('nativephp_call')) {
             return false;
         }
 

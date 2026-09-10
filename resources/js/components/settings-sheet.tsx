@@ -20,7 +20,14 @@ import {
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 // NativePHP imports for camera access
-import { camera, Events, isMobile, off, on, secureStorage } from '#nativephp';
+import {
+    Events,
+    IsMobile,
+    Camera as NativeCamera,
+    Off,
+    On,
+    SecureStorage,
+} from '#nativephp';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
 import { useOpenExternal } from '@/hooks/use-open-external';
 import { cn } from '@/lib/utils';
@@ -534,13 +541,13 @@ function ProfileView({
         setImageSaved(false);
 
         try {
-            const isNative = await isMobile();
+            const isNative = await IsMobile();
             console.log('Settings: saveImage - isNative:', isNative);
 
             if (isNative && base64Data) {
                 // Use API with Sanctum token (like registration does)
                 console.log('Settings: Saving via API with token...');
-                const token = await secureStorage.get('auth_token');
+                const { value: token } = await SecureStorage.get('auth_token');
                 console.log('Settings: Got token:', token ? 'yes' : 'no');
 
                 const response = await fetch('/api/profile', {
@@ -673,11 +680,11 @@ function ProfileView({
         console.log('Settings: handleTakePhoto called');
         setShowImagePicker(false);
         try {
-            console.log('Settings: Calling camera.getPhoto()...');
-            await camera.getPhoto().id('settings-photo');
-            console.log('Settings: camera.getPhoto() completed');
+            console.log('Settings: Calling NativeCamera.getPhoto()...');
+            await NativeCamera.getPhoto().id('settings-photo');
+            console.log('Settings: NativeCamera.getPhoto() completed');
         } catch (error) {
-            console.error('Settings: camera.getPhoto() error:', error);
+            console.error('Settings: NativeCamera.getPhoto() error:', error);
         }
     };
 
@@ -686,11 +693,11 @@ function ProfileView({
         console.log('Settings: handlePickFromGallery called');
         setShowImagePicker(false);
         try {
-            console.log('Settings: Calling camera.pickImages()...');
-            await camera.pickImages().images().id('settings-gallery');
-            console.log('Settings: camera.pickImages() completed');
+            console.log('Settings: Calling NativeCamera.pickImages()...');
+            await NativeCamera.pickImages().images().id('settings-gallery');
+            console.log('Settings: NativeCamera.pickImages() completed');
         } catch (error) {
-            console.error('Settings: camera.pickImages() error:', error);
+            console.error('Settings: NativeCamera.pickImages() error:', error);
         }
     };
 
@@ -698,8 +705,8 @@ function ProfileView({
     const handleAvatarClick = async () => {
         console.log('Settings: handleAvatarClick called');
         try {
-            const isNative = await isMobile();
-            console.log('Settings: isMobile() returned:', isNative);
+            const isNative = await IsMobile();
+            console.log('Settings: IsMobile() returned:', isNative);
 
             if (isNative) {
                 console.log('Settings: Showing native image picker');
@@ -709,7 +716,7 @@ function ProfileView({
                 fileInputRef.current?.click();
             }
         } catch (error) {
-            console.error('Settings: isMobile() error:', error);
+            console.error('Settings: IsMobile() error:', error);
             // Fallback to file input on error
             fileInputRef.current?.click();
         }
@@ -759,12 +766,12 @@ function ProfileView({
             Events?.Gallery?.MediaSelected ||
             'Native\\Mobile\\Events\\Gallery\\MediaSelected';
 
-        on(photoEvent, handlePhotoTaken);
-        on(mediaEvent, handleMediaSelected);
+        On(photoEvent, handlePhotoTaken);
+        On(mediaEvent, handleMediaSelected);
 
         return () => {
-            off(photoEvent, handlePhotoTaken);
-            off(mediaEvent, handleMediaSelected);
+            Off(photoEvent, handlePhotoTaken);
+            Off(mediaEvent, handleMediaSelected);
         };
     }, []);
 

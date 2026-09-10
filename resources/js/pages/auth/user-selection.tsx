@@ -9,7 +9,14 @@ import {
 } from 'react';
 
 // NativePHP imports for camera access and secure storage
-import { camera, Events, isMobile, off, on, secureStorage } from '#nativephp';
+import {
+    Events,
+    IsMobile,
+    Camera as NativeCamera,
+    Off,
+    On,
+    SecureStorage,
+} from '#nativephp';
 import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -99,14 +106,14 @@ export default function UserSelection({ users }: Props) {
 
     // Check if running in NativePHP mobile
     useEffect(() => {
-        // Try calling isMobile() and catch any errors for web environments
-        isMobile()
+        // Try calling IsMobile() and catch any errors for web environments
+        IsMobile()
             .then((result) => {
-                console.log('isMobile() result:', result);
+                console.log('IsMobile() result:', result);
                 setIsNative(result);
             })
             .catch((error) => {
-                console.log('isMobile() error (likely web browser):', error);
+                console.log('IsMobile() error (likely web browser):', error);
                 setIsNative(false);
             });
     }, []);
@@ -170,7 +177,7 @@ export default function UserSelection({ users }: Props) {
 
                     // Store token in SecureStorage
                     console.log('Storing token in SecureStorage...');
-                    await secureStorage.set(AUTH_TOKEN_KEY, response.token);
+                    await SecureStorage.set(AUTH_TOKEN_KEY, response.token);
                     console.log('Token stored successfully');
 
                     // Navigate to dashboard
@@ -220,7 +227,7 @@ export default function UserSelection({ users }: Props) {
 
                 // Store token in SecureStorage
                 console.log('Storing token in SecureStorage...');
-                await secureStorage.set(AUTH_TOKEN_KEY, response.token);
+                await SecureStorage.set(AUTH_TOKEN_KEY, response.token);
                 console.log('Token stored successfully');
 
                 // Navigate to dashboard
@@ -268,11 +275,11 @@ export default function UserSelection({ users }: Props) {
         console.log('handleTakePhoto called');
         setShowImagePicker(false);
         try {
-            console.log('Calling camera.getPhoto()...');
-            await camera.getPhoto().id('profile-photo');
-            console.log('camera.getPhoto() completed');
+            console.log('Calling NativeCamera.getPhoto()...');
+            await NativeCamera.getPhoto().id('profile-photo');
+            console.log('NativeCamera.getPhoto() completed');
         } catch (error) {
-            console.error('camera.getPhoto() error:', error);
+            console.error('NativeCamera.getPhoto() error:', error);
         }
     };
 
@@ -281,11 +288,11 @@ export default function UserSelection({ users }: Props) {
         console.log('handlePickFromGallery called');
         setShowImagePicker(false);
         try {
-            console.log('Calling camera.pickImages()...');
-            await camera.pickImages().images().id('profile-gallery');
-            console.log('camera.pickImages() completed');
+            console.log('Calling NativeCamera.pickImages()...');
+            await NativeCamera.pickImages().images().id('profile-gallery');
+            console.log('NativeCamera.pickImages() completed');
         } catch (error) {
-            console.error('camera.pickImages() error:', error);
+            console.error('NativeCamera.pickImages() error:', error);
         }
     };
 
@@ -373,13 +380,13 @@ export default function UserSelection({ users }: Props) {
             Events?.Gallery?.MediaSelected ||
             'Native\\Mobile\\Events\\Gallery\\MediaSelected';
 
-        on(photoEvent, handlePhotoTaken);
-        on(mediaEvent, handleMediaSelected);
+        On(photoEvent, handlePhotoTaken);
+        On(mediaEvent, handleMediaSelected);
 
         // Cleanup on unmount
         return () => {
-            off(photoEvent, handlePhotoTaken);
-            off(mediaEvent, handleMediaSelected);
+            Off(photoEvent, handlePhotoTaken);
+            Off(mediaEvent, handleMediaSelected);
         };
     }, []);
 
@@ -405,7 +412,7 @@ export default function UserSelection({ users }: Props) {
                 });
 
                 // Store token in SecureStorage
-                await secureStorage.set(AUTH_TOKEN_KEY, response.token);
+                await SecureStorage.set(AUTH_TOKEN_KEY, response.token);
 
                 // Navigate to dashboard
                 router.visit('/dashboard');

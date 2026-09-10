@@ -18,6 +18,9 @@
         "wayfinder-development",
         "pest-testing",
         "inertia-react-development",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "nativephp-mobile",
+        "nativephp-v3-to-v4-upgrade",
+        "nativephp-webview-to-native"
     ]
 }

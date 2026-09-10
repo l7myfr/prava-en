@@ -16,7 +16,9 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
-        "nativephp/mobile": "^2.6"
+        "nativephp/mobile": "^4.0",
+        "nativephp/mobile-browser": "^1.0",
+        "nativephp/mobile-camera": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -106,10 +108,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [{
-        "name": "nativephp",
-        "type": "composer",
-        "url": "https://nativephp.composer.sh"
-    }]
+    "prefer-stable": true
 }

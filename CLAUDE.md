@@ -80,7 +80,7 @@ SQLite database. Primary model is `User` with Fortify 2FA columns.
 ### NativePHP Mobile
 Configuration in `config/nativephp.php` controls app version, permissions (camera, biometric, push notifications), orientation settings, and hot reload paths.
 
-**Documentation**: https://nativephp.com/docs/mobile/2
+**Documentation**: https://nativephp.com/docs/mobile/4
 
 **Edge Components** (Native UI):
 - `<native:top-bar>` - Native header with title, subtitle, and action buttons
@@ -106,30 +106,32 @@ Configuration in `config/nativephp.php` controls app version, permissions (camer
 
 ### NativePHP Form Submission (CRITICAL)
 
-**Issue**: NativePHP WebView does NOT properly parse `multipart/form-data` requests. Form data arrives empty on the server even though the request is sent correctly.
+**Issue**: the NativePHP WebView never delivers a `multipart/form-data` body to PHP. Re-tested on device against 4.3.2 (Android, SM-S908E) on 2026-09-10, so this is not a stale v2 note:
 
-**Solution**: Use JSON (`application/json`) for form submissions. Only use `forceFormData: true` when actually uploading files.
+| body | `Content-Type` seen by PHP | `$request->all()` | `strlen($request->getContent())` |
+| --- | --- | --- | --- |
+| `FormData`, fields only | `multipart/form-data; boundary=...` | `[]` | 0 |
+| `FormData` with a `Blob` | `multipart/form-data; boundary=...` | `[]` | 39, a truncated fragment |
+| `JSON.stringify(...)` | `application/json` | populated | correct |
+
+The header arrives, the body does not. With a file attached the body is truncated rather than merely unparsed, so `$request->allFiles()` is empty too.
+
+**Solution**: send JSON. **There is no working multipart path, so there is no file upload path either** — send binary as base64 inside a JSON body, which is what the profile photo flow does.
 
 ```tsx
-// CORRECT - Use JSON for text-only forms
+// CORRECT - JSON, for every form
 const form = useForm({ name: '', email: '' });
-form.post('/register'); // Sends as application/json - WORKS
+form.post('/register'); // application/json - works
 
-// CORRECT - Use FormData only when uploading files
-const form = useForm({ name: '', avatar: null as File | null });
-const handleSubmit = () => {
-    if (form.data.avatar) {
-        form.post('/register', { forceFormData: true }); // File upload
-    } else {
-        form.post('/register'); // JSON for text-only
-    }
-};
+// CORRECT - a file goes as base64 in a JSON body
+const form = useForm({ name: '', profile_image_base64: '' });
+form.post('/register');
 
-// WRONG - Don't force FormData for text-only submissions
-form.post('/register', { forceFormData: true }); // Data arrives EMPTY!
+// WRONG - the body never reaches PHP, with or without a file
+form.post('/register', { forceFormData: true });
 ```
 
-**Debugging**: Use `dd($request->all())` in controllers to see what data is received. In NativePHP, `dd()` output displays in the WebView.
+**Debugging**: `dd($request->all())` in a controller renders into the WebView. To see whether a body arrived at all rather than just failed to parse, log `strlen($request->getContent())` — that is what separates "not parsed" from "not delivered".
 
 ## Google Play Console: API access
 
@@ -176,7 +178,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 ## Foundational Context
 
-This application is a Laravel application running on PHP 8.3. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
+This application is a Laravel application running on PHP 8.4. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
 
 Before relying on a package's API, confirm its installed version:
 - PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
@@ -383,164 +385,133 @@ Use Wayfinder to generate TypeScript functions for Laravel routes. Import from `
 
 ## NativePHP Mobile
 
-- NativePHP Mobile is a Laravel package that enables developers to build native iOS and Android applications using PHP and native UI components.
-- NativePHP Mobile runs a full PHP runtime directly on the device with SQLite — no web server required.
-- NativePHP Mobile supports **two frontend approaches**: Livewire/Blade (PHP) or JavaScript frameworks (Vue, React, Inertia, etc.).
-- NativePHP Mobile documentation is hosted at `https://nativephp.com/docs/mobile/2/**`
-- **Before implementing any features using NativePHP Mobile, use the `web-search` tool to get the latest docs for that specific feature. The docs listing is available in <available-docs>**
+- NativePHP Mobile is a Laravel package for building **fully native** iOS and Android apps with PHP. Screens are
+rendered as real SwiftUI (iOS) and Jetpack Compose (Android) UI — driven entirely by PHP via SuperNative components
+and EDGE Blade elements. A full PHP runtime runs directly on the device with SQLite — no web server required.
+- Documentation: `https://nativephp.com/docs/mobile/4/**`
+- IMPORTANT: Always activate the `nativephp-mobile` skill every time you work on any NativePHP functionality.
 
-### Identifying the Development Environment
+### Native UI First — Always
 
-**IMPORTANT:** Before running commands or giving platform-specific advice, determine:
+**Always build screens with native UI: `NativeComponent` classes registered via `Route::native()`, rendering EDGE
+elements (`native:column`, `native:text`, `native:button`, …).** This is the way to build NativePHP apps.
 
-1. **Operating System** (check with system info or ask):
-   - **macOS**: Can build and run for **both iOS and Android**
-   - **Windows/Linux**: Can **only build for Android** — iOS requires macOS with Xcode
-   - When on Windows/Linux, never suggest `php artisan native:run ios`, `native:install ios`, or `native:open ios`
-   - **Note:** WSL (Windows Subsystem for Linux) is NOT supported — must run directly on Windows
+- Never scaffold new screens as web views, Blade-over-WebView pages, Livewire components, or Inertia pages.
+- The web view (the `native:web-view` element) is a legacy/edge-case escape hatch for embedding web content — never the
+  foundation of a screen. If the user asks for a webview-based screen, build it natively with EDGE instead and
+  explain why; only fall back to the web view if they explicitly insist.
+- If the app contains legacy webview screens, proactively suggest converting them to native UI (see the
+  `nativephp-webview-to-native` skill).
+- Style EDGE elements with Tailwind utility classes via `class="..."` / `:class="..."` only — never inline
+  CSS `style="..."` attributes or ad-hoc styling props.
+- Compose screens from **nested child components**: any `NativeComponent` under `app/NativeComponents` mounts
+  as a tag (`UserCard` → `<native:user-card :user="$u" key="user-{{ $u->id }}" @saved="onSaved" />`) with live
+  props, its own persistent state, and `emit()` events bubbling to `@event` tag bindings / `#[On('event')]`
+  listeners. Prefer extracting a reusable child component over duplicating Blade across screens; give list
+  children a stable domain `key` (never the loop index).
+- Use `native:icon` (SF Symbols on iOS, Material Icons on Android) for iconography — never emoji characters in
+  UI text, labels, or buttons, unless the user explicitly asks for emojis. Prefer the typed icon enums
+  (`App\Icons\Ios`, `App\Icons\Android`, `App\Icons\AndroidOutlined`) bound via the `:ios` / `:android`
+  attributes, e.g. `:ios="Ios::Gearshape" :android="Android::Settings"`, importing each enum into the view with
+  Blade's use directive first. The enums are generated, not shipped — if `app/Icons/` doesn't exist yet, run
+  `php artisan native-ui:generate-icons` first (safe to run yourself).
 
-2. **Frontend Stack** (examine the codebase):
-   - **Livewire/Blade**: Look for `.blade.php` files with `wire:` directives, Livewire components in `app/Livewire/`
-   - **JavaScript (Vue/React/Inertia)**: Look for `.vue`, `.jsx`, `.tsx` files, `resources/js/` with framework code, `inertiajs` in `package.json`
+### Theme Tokens, Font Aliases, and Layouts — the Design System Trio
 
-### Required Environment Variables
+Every app's visual identity belongs in `config/native-ui.php` (publish with
+`php artisan vendor:publish --tag=native-ui-config`), not scattered through the markup. When building or
+reviewing screens, enforce all three:
 
-**CRITICAL:** Before running `php artisan native:install`, ensure these are set in `.env`:
+1. **Theme tokens over hardcoded colors.** Define the palette once in the config's `theme` block, then style
+   with `bg-theme-*` / `text-theme-*` / `border-theme-*` classes (`bg-theme-surface`, `text-theme-on-surface`,
+   `border-theme-outline`). Never sprinkle `bg-[#1E2021]`-style arbitrary values for what is really a theme
+   role — they can't be re-skinned and don't get automatic dark-mode pairs. Arbitrary color values are for
+   genuine data-driven color (per-category identity colors, map imagery, chart series), and those belong in
+   one PHP home (an enum or model method), never inline per view. Two capabilities that prevent hex fallbacks:
+   - **The token map is open-ended.** When a design needs a role the shipped set lacks (a success green, an
+     `outline-variant`), add it to both `light` and `dark` blocks — `bg-theme-success` works immediately; no
+     package change required.
+   - **Theme classes take opacity modifiers** just like palette classes: `bg-theme-primary/15` is the correct
+     tonal-fill idiom (applies to the dark companion too) — never approximate with a hardcoded alpha hex.
+2. **Font aliases over file tokens.** Register semantic aliases in the config's `fonts` array
+   (`'headline' => 'ArchivoNarrow-Bold'`, `'mono' => 'JetBrainsMono-Regular'`, `'default' => …` for the
+   app-wide font) and write `font="headline"` in views — never `font="ArchivoNarrow-Bold"`. Swapping a
+   typeface must be a one-line config change.
+3. **Native chrome via composable chrome elements (layouts optional).** Author nav bars, tab bars, fabs, and
+   side navs directly in the screen's Blade — `<native:top-bar>` (+ `top-bar-action`), `<native:bottom-nav>`
+   (+ `bottom-nav-item`), `<native:fab>`, `<native:bottom-bar>`, `<native:side-nav>`. They hoist onto the real
+   NavigationStack/TabView chrome (edge-swipe back, predictive back, large titles, Liquid Glass/Material You),
+   and their attributes are Blade expressions over screen state, so badges/subtitles/icons are reactive. A
+   `NativeLayout` (attached via `Route::native(...)->layout(...)` or `Route::nativeGroup(...)`) is **optional**
+   — reach for one only when many screens share identical chrome (e.g. one tabs layout for a tab section); an
+   inline chrome element on a screen always overrides the layout's bar for that slot. Add the `custom`
+   attribute to a chrome tag only for designs the system bars genuinely can't express — it renders in-tree as
+   an ordinary drawn element. Never hand-roll top bars or bottom navs out of rows and pressables — that
+   forfeits native back gestures, safe-area handling, and Liquid Glass/Material You. Chrome colors take theme
+   tokens (inline: theme classes / `theme()`-fed attributes; builders: `->activeColor(theme('primary'))`) —
+   never pasted hex. Bar icons take the platform enums via `:ios-icon` / `:android-icon` with a plain `icon`
+   string as cross-platform fallback; bar fonts take config aliases (`font="mono"` / `->font('mono')`). Only
+   screens rendered without any chrome (no layout AND no inline bars) may use `safe-area` classes.
 
-```dotenv
-NATIVEPHP_APP_ID=com.yourcompany.yourapp
-NATIVEPHP_APP_VERSION="DEBUG"
-NATIVEPHP_APP_VERSION_CODE="1"
-```
+### When a Capability Is Missing
 
-- `NATIVEPHP_APP_ID`: Reverse-domain app identifier (e.g., `com.acme.myapp`) — **required**
-- `NATIVEPHP_APP_VERSION`: Use `"DEBUG"` for development, semantic version (e.g., `"1.0.0"`) for production
-- `NATIVEPHP_APP_VERSION_CODE`: Integer build number for Play Store (increment with each release)
+If the app needs native functionality or a UI component that core and `native-ui` don't provide:
 
-**Optional but recommended for iOS:**
-```dotenv
-NATIVEPHP_DEVELOPMENT_TEAM=XXXXXXXXXX
-```
-Find your Team ID in your [Apple Developer account](https://developer.apple.com/account) under 'Membership details'.
+1. **Look for an existing plugin first.** Check the plugin marketplace (`https://plugins.nativephp.com`) and the
+   official core plugins. (If a marketplace-lookup MCP tool is available in your session, use it.)
+2. **If no plugin exists, build a custom plugin** with `php artisan native:plugin:create` — plugins bundle
+   Swift/Kotlin bridge functions, events, permissions, and can even ship their own native EDGE components.
+3. **Never fall back to the web view to fill a native gap.** A missing capability is a reason to write a plugin,
+   not a reason to build a webview screen.
 
-### PHP Usage (Livewire/Blade Projects)
+### Installing Plugins — Always Register and Verify
 
-Use PHP Facades in the `Native\Mobile\Facades` namespace:
-- `Camera::getPhoto()`, `Dialog::toast()`, `Biometrics::prompt()`, `Scanner::scan()`, etc.
-- All Facades: `Camera`, `Microphone`, `Dialog`, `Scanner`, `Biometrics`, `PushNotifications`, `Geolocation`, `Network`, `Browser`, `SecureStorage`, `File`, `Share`, `Haptics`, `System`, `Device`
-- Listen for events with `#[OnNative(EventClass::class)]` attribute on Livewire component methods
-- Use EDGE components in Blade templates for native UI (`native:bottom-nav`, `native:top-bar`, `native:side-nav`)
+Requiring a plugin with Composer is NOT enough — an installed-but-unregistered plugin does nothing. Every plugin
+install must follow all three steps:
 
-### JavaScript Usage (Vue/React/Inertia Projects)
+1. `composer require vendor/plugin-name`
+2. `php artisan vendor:publish --tag=nativephp-plugins-provider` — publishes the app's `NativeServiceProvider`
+   (needed once, before the first plugin registration; harmless to re-run)
+3. `php artisan native:plugin:register vendor/plugin-name` — adds it to the `NativeServiceProvider`
+4. `php artisan native:plugin:list` — verify it shows as registered
 
-Import from the NativePHP JavaScript bridge library:
-```javascript
-import { camera, dialog, scanner, biometric, on, Events } from '#nativephp';
-// or individual imports
-import { getPhoto, alert, scanQR } from '#nativephp';
-```
+Then tell the user to rebuild with `php artisan native:run` (native code only compiles in at build time — do not
+run this yourself). If `native:run` warns "The following plugins are installed but not registered", go back to
+step 3.
 
-The JS API mirrors the PHP Facades with fluent builders:
-- `await camera.getPhoto()` / `await dialog.alert('Title', 'Message')` / `await scanner.scan()`
-- `await biometric.prompt().id('auth-check')` — fluent builder pattern
-- `await scanner.scan().prompt('Scan ticket').formats(['qr', 'ean13'])`
+### Database Seeding — Always via Migrations
 
-Listen for events with `on()` and `off()`:
-```javascript
-import { on, off, Events } from '#nativephp';
-on(Events.Camera.PhotoTaken, (payload) => { /* handle photo */ });
-// Cleanup in unmount: off(Events.Camera.PhotoTaken, handler);
-```
+On-device there is no `db:seed` — NativePHP runs **migrations** on app start (once each, tracked, versioned).
+Whenever asked to seed the database, use the migration trick: create a dedicated migration
+(`php artisan make:migration seed_app_settings`) and put the inserts in `up()`. If a Seeder class helps organize
+the data, still create it — but invoke it **from the migration's `up()`** (e.g. `(new CategorySeeder)->run()`),
+never rely on `db:seed` being run. Seed migrations must be safe for both fresh installs and updates of existing
+user databases.
 
-### Event Handling (Both Stacks)
+### Build Commands — Tell the User, Never Run
 
-Asynchronous operations dispatch events to both JavaScript and PHP simultaneously.
+**CRITICAL: Never execute any of these commands yourself. Always instruct the user to run them manually in their
+terminal.**
 
-**Livewire/Blade:**
-```php
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Camera\PhotoTaken;
+| Command | Purpose |
+|---|---|
+| `php artisan native:run ios` | Compile and run on iOS simulator/device |
+| `php artisan native:run android` | Compile and run on Android emulator/device |
+| `php artisan native:run ios --watch` | Build, deploy, then start hot reload — all in one |
+| `php artisan native:watch` | Hot reload (watch for file changes) |
+| `php artisan native:open` | Open project in Xcode or Android Studio |
+| `php artisan native:install` | Install/upgrade the native shell |
 
-#[OnNative(PhotoTaken::class)]
-public function handlePhoto(string $path) { /* ... */ }
-```
+Notes:
+- The `./native` shortcut wraps the `native:` namespace (`./native run`, `./native watch`).
+- The Vite dev server is **opt-in** in v4: add `--vite` to `native:run`/`native:watch` only when the app actually
+  uses JS/CSS HMR. Native UI screens hot-reload without Vite.
+- `npm run build -- --mode=ios|android` is only needed for apps with web-view assets — not for native UI screens.
 
-**JavaScript (Vue/React):**
-```javascript
-import { on, Events } from '#nativephp';
-on(Events.Camera.PhotoTaken, ({ path }) => { /* ... */ });
-```
+**Always ask which platform before giving any build or run command.** If the user hasn't specified iOS or Android,
+ask: "Which platform do you want to build/test on — iOS or Android?" Never assume a platform.
 
-Custom events can extend built-in events and be passed via `->event(CustomEvent::class)` (PHP) or `.event('App\\Events\\Custom')` (JS).
-
-### EDGE Components (Native UI)
-
-- EDGE (Element Definition and Generation Engine) renders Blade components as truly native UI elements.
-- Components use `native:` prefix: `native:bottom-nav`, `native:top-bar`, `native:side-nav`.
-- Child items require unique `id` attributes for lifecycle management.
-- Add `nativephp-safe-area` class to body for proper handling of notches and navigation areas.
-- **Note:** EDGE components are defined in Blade templates and work with both Livewire and Inertia apps (the layout is still Blade).
-
-<available-docs>
-
-## Getting Started
-
-- [https://nativephp.com/docs/mobile/2/getting-started/introduction] Use these docs for comprehensive introduction to NativePHP Mobile, overview of how PHP runs natively on device, the embedded runtime architecture, and core philosophy behind the package
-- [https://nativephp.com/docs/mobile/2/getting-started/quick-start] Use these docs for rapid setup guide to get your first mobile app running in minutes
-- [https://nativephp.com/docs/mobile/2/getting-started/environment-setup] Use these docs for setting up your development environment including Xcode, Android Studio, simulators, and required dependencies
-- [https://nativephp.com/docs/mobile/2/getting-started/installation] Use these docs for step-by-step installation via Composer, running `php artisan native:install`, platform-specific setup, and ICU support options
-- [https://nativephp.com/docs/mobile/2/getting-started/configuration] Use these docs for detailed configuration guide including NATIVEPHP_APP_ID, NATIVEPHP_APP_VERSION, permissions setup, and config/nativephp.php options
-- [https://nativephp.com/docs/mobile/2/getting-started/development] Use these docs for development workflow including `php artisan native:run`, `native:watch` for hot reload, `native:tail` for logs, and debugging techniques
-- [https://nativephp.com/docs/mobile/2/getting-started/deployment] Use these docs for packaging and deploying apps to App Store and Play Store using `php artisan native:package`
-- [https://nativephp.com/docs/mobile/2/getting-started/versioning] Use these docs for version management, semantic versioning, and `php artisan native:release` command
-- [https://nativephp.com/docs/mobile/2/getting-started/changelog] Use these docs for version history and release notes
-- [https://nativephp.com/docs/mobile/2/getting-started/roadmap] Use these docs for upcoming features and planned improvements
-- [https://nativephp.com/docs/mobile/2/getting-started/support-policy] Use these docs for support policy and compatibility information
-
-## The Basics
-
-- [https://nativephp.com/docs/mobile/2/the-basics/overview] Use these docs for understanding how NativePHP Mobile works, the bridge between PHP and native code, and the overall architecture
-- [https://nativephp.com/docs/mobile/2/the-basics/events] Use these docs for the complete event system guide including async vs sync operations, event handling in Livewire with `#[OnNative()]`, JavaScript event handling with `Native.on()`, custom events, and the dual dispatch pattern
-- [https://nativephp.com/docs/mobile/2/the-basics/native-functions] Use these docs for understanding the `nativephp_call()` function, the bridge function registry, and how to extend native functionality
-- [https://nativephp.com/docs/mobile/2/the-basics/native-components] Use these docs for overview of native UI components and how they integrate with your app
-- [https://nativephp.com/docs/mobile/2/the-basics/web-view] Use these docs for understanding the web view rendering, JavaScript bridge, and how PHP content is displayed
-- [https://nativephp.com/docs/mobile/2/the-basics/splash-screens] Use these docs for configuring splash screens on iOS and Android
-- [https://nativephp.com/docs/mobile/2/the-basics/app-icon] Use these docs for setting up app icons for both platforms
-- [https://nativephp.com/docs/mobile/2/the-basics/assets] Use these docs for managing static assets, images, and files in your mobile app
-
-## EDGE Components (Native UI)
-
-- [https://nativephp.com/docs/mobile/2/edge-components/introduction] Use these docs for understanding EDGE (Element Definition and Generation Engine), how Blade components become native UI, server-driven UI approach, and the JSON compilation process
-- [https://nativephp.com/docs/mobile/2/edge-components/bottom-nav] Use these docs for implementing bottom navigation bars with `native:bottom-nav` and `native:bottom-nav-item`, including icons, labels, URLs, and styling
-- [https://nativephp.com/docs/mobile/2/edge-components/top-bar] Use these docs for implementing top app bars with `native:top-bar` and `native:top-bar-action`, including titles, navigation icons, and action buttons
-- [https://nativephp.com/docs/mobile/2/edge-components/side-nav] Use these docs for implementing slide-out navigation drawers with `native:side-nav`, `native:side-nav-item`, `native:side-nav-header`, and `native:side-nav-group`
-- [https://nativephp.com/docs/mobile/2/edge-components/icons] Use these docs for available icon names and how to use icons in EDGE components
-
-## APIs (Device Features)
-
-- [https://nativephp.com/docs/mobile/2/apis/camera] Use these docs for camera operations including `Camera::getPhoto()`, `Camera::recordVideo()`, `Camera::pickImages()`, PhotoTaken and VideoRecorded events
-- [https://nativephp.com/docs/mobile/2/apis/microphone] Use these docs for audio recording with `Microphone::record()`, `->start()`, `->stop()`, `->pause()`, `->resume()`, `->getStatus()`, and MicrophoneRecorded events
-- [https://nativephp.com/docs/mobile/2/apis/scanner] Use these docs for QR code and barcode scanning with `Scanner::scan()`, fluent configuration, CodeScanned events, and supported formats
-- [https://nativephp.com/docs/mobile/2/apis/dialog] Use these docs for native dialogs with `Dialog::alert()`, `Dialog::toast()`, button configuration, and ButtonPressed events
-- [https://nativephp.com/docs/mobile/2/apis/biometrics] Use these docs for Face ID/Touch ID authentication with `Biometrics::prompt()`, fluent API, and Completed events
-- [https://nativephp.com/docs/mobile/2/apis/push-notifications] Use these docs for push notification enrollment with `PushNotifications::enroll()`, `->getToken()`, and TokenGenerated events
-- [https://nativephp.com/docs/mobile/2/apis/geolocation] Use these docs for location services with `Geolocation::getCurrentPosition()`, `->checkPermissions()`, `->requestPermissions()`, and LocationReceived events
-- [https://nativephp.com/docs/mobile/2/apis/browser] Use these docs for opening URLs with `Browser::open()`, `Browser::inApp()`, `Browser::auth()` for OAuth flows
-- [https://nativephp.com/docs/mobile/2/apis/secure-storage] Use these docs for secure credential storage with `SecureStorage::get()`, `->set()`, `->delete()` using device Keychain/KeyStore
-- [https://nativephp.com/docs/mobile/2/apis/share] Use these docs for native share sheet with `Share::url()` and `Share::file()`
-- [https://nativephp.com/docs/mobile/2/apis/file] Use these docs for file operations with `File::move()` and `File::copy()`
-- [https://nativephp.com/docs/mobile/2/apis/network] Use these docs for network status checking with `Network::status()`
-- [https://nativephp.com/docs/mobile/2/apis/haptics] Use these docs for haptic feedback with `Haptics::vibrate()` (prefer `Device::vibrate()`)
-- [https://nativephp.com/docs/mobile/2/apis/device] Use these docs for device information with `Device::getId()`, `->getInfo()`, `->getBatteryInfo()`, `->vibrate()`, `->toggleFlashlight()`
-- [https://nativephp.com/docs/mobile/2/apis/system] Use these docs for platform detection with `System::isIos()`, `System::isAndroid()`, `System::isMobile()`, `System::flashlight()`
-
-## Concepts
-
-- [https://nativephp.com/docs/mobile/2/concepts/databases] Use these docs for SQLite database usage, local data storage, and when to use local vs API storage
-- [https://nativephp.com/docs/mobile/2/concepts/deep-links] Use these docs for configuring deep links, URL schemes, and universal links
-- [https://nativephp.com/docs/mobile/2/concepts/push-notifications] Use these docs for comprehensive push notification setup including Firebase, APNs, and server-side integration
-- [https://nativephp.com/docs/mobile/2/concepts/security] Use these docs for security best practices, secure storage, and protecting sensitive data
-- [https://nativephp.com/docs/mobile/2/concepts/ci-cd] Use these docs for continuous integration and deployment pipelines for mobile apps
-</available-docs>
+When the platform is confirmed, give the relevant command(s) above and tell the user to run it in their terminal.
+Do not run it yourself.
 
 </laravel-boost-guidelines>
