@@ -178,9 +178,11 @@ it('retires the prompt for good when the user chooses to rate', function () {
 it('falls back to the store listing when the native bridge is absent', function () {
     config(['review_prompt.store_url' => 'market://details?id=com.example.app']);
 
-    // nativephp_call only exists inside the mobile runtime, so this is the
-    // shape every non-mobile caller sees, including a browser during dev.
-    expect(function_exists('nativephp_call'))->toBeFalse();
+    // NativePHP v4 defines a pure-PHP nativephp_call on every non-device host
+    // for Jump's relay, so its presence proves nothing. NATIVEPHP_RUNNING is
+    // the signal, and it is unset for every non-mobile caller, including a
+    // browser during dev and the web build.
+    expect(env('NATIVEPHP_RUNNING'))->toBeEmpty();
 
     $this->actingAs($this->user)
         ->post('/review-prompt/rate')

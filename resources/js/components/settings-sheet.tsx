@@ -20,7 +20,14 @@ import {
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 // NativePHP imports for camera access
-import { camera, Events, isMobile, off, on, secureStorage } from '#nativephp';
+import {
+    Events,
+    IsMobile,
+    Camera as NativeCamera,
+    Off,
+    On,
+    SecureStorage,
+} from '#nativephp';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
 import { useOpenExternal } from '@/hooks/use-open-external';
 import { cn } from '@/lib/utils';
@@ -534,13 +541,13 @@ function ProfileView({
         setImageSaved(false);
 
         try {
-            const isNative = await isMobile();
+            const isNative = await IsMobile();
             console.log('Settings: saveImage - isNative:', isNative);
 
             if (isNative && base64Data) {
                 // Use API with Sanctum token (like registration does)
                 console.log('Settings: Saving via API with token...');
-                const token = await secureStorage.get('auth_token');
+                const { value: token } = await SecureStorage.get('auth_token');
                 console.log('Settings: Got token:', token ? 'yes' : 'no');
 
                 const response = await fetch('/api/profile', {
@@ -638,7 +645,16 @@ function ProfileView({
     const loadNativeFilePreview = useEffectEvent(async (path: string) => {
         try {
             console.log('Settings: Loading preview for:', path);
-            const url = `/native-file/preview?path=${encodeURIComponent(path)}`;
+            // The trailing parameter is load-bearing, not decoration. The
+            // Android web view decides whether a request is a static asset by
+            // testing whether the WHOLE url ends with an image extension,
+            // query string included (PHPWebViewClient.isStaticAssetExtension).
+            // A camera capture is `captured_<ms>.jpg`, so `?path=...jpg` was
+            // misread as an asset, missed on disk, and then re-sent to PHP with
+            // its query string appended a second time, which 404s. A gallery
+            // pick is `gallery_selected_<ms>` with no extension, which is the
+            // only reason that path ever worked. Keep `path` away from the end.
+            const url = `/native-file/preview?path=${encodeURIComponent(path)}&preview=1`;
             const response = await fetch(url);
 
             const data = await response.json();
@@ -673,11 +689,11 @@ function ProfileView({
         console.log('Settings: handleTakePhoto called');
         setShowImagePicker(false);
         try {
-            console.log('Settings: Calling camera.getPhoto()...');
-            await camera.getPhoto().id('settings-photo');
-            console.log('Settings: camera.getPhoto() completed');
+            console.log('Settings: Calling NativeCamera.getPhoto()...');
+            await NativeCamera.getPhoto().id('settings-photo');
+            console.log('Settings: NativeCamera.getPhoto() completed');
         } catch (error) {
-            console.error('Settings: camera.getPhoto() error:', error);
+            console.error('Settings: NativeCamera.getPhoto() error:', error);
         }
     };
 
@@ -686,11 +702,11 @@ function ProfileView({
         console.log('Settings: handlePickFromGallery called');
         setShowImagePicker(false);
         try {
-            console.log('Settings: Calling camera.pickImages()...');
-            await camera.pickImages().images().id('settings-gallery');
-            console.log('Settings: camera.pickImages() completed');
+            console.log('Settings: Calling NativeCamera.pickImages()...');
+            await NativeCamera.pickImages().images().id('settings-gallery');
+            console.log('Settings: NativeCamera.pickImages() completed');
         } catch (error) {
-            console.error('Settings: camera.pickImages() error:', error);
+            console.error('Settings: NativeCamera.pickImages() error:', error);
         }
     };
 
@@ -698,8 +714,8 @@ function ProfileView({
     const handleAvatarClick = async () => {
         console.log('Settings: handleAvatarClick called');
         try {
-            const isNative = await isMobile();
-            console.log('Settings: isMobile() returned:', isNative);
+            const isNative = await IsMobile();
+            console.log('Settings: IsMobile() returned:', isNative);
 
             if (isNative) {
                 console.log('Settings: Showing native image picker');
@@ -709,7 +725,7 @@ function ProfileView({
                 fileInputRef.current?.click();
             }
         } catch (error) {
-            console.error('Settings: isMobile() error:', error);
+            console.error('Settings: IsMobile() error:', error);
             // Fallback to file input on error
             fileInputRef.current?.click();
         }
@@ -759,12 +775,12 @@ function ProfileView({
             Events?.Gallery?.MediaSelected ||
             'Native\\Mobile\\Events\\Gallery\\MediaSelected';
 
-        on(photoEvent, handlePhotoTaken);
-        on(mediaEvent, handleMediaSelected);
+        On(photoEvent, handlePhotoTaken);
+        On(mediaEvent, handleMediaSelected);
 
         return () => {
-            off(photoEvent, handlePhotoTaken);
-            off(mediaEvent, handleMediaSelected);
+            Off(photoEvent, handlePhotoTaken);
+            Off(mediaEvent, handleMediaSelected);
         };
     }, []);
 

@@ -22,7 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // CSRF is skipped on the device build only. See the middleware for why
         // the blanket exemption cannot be allowed to reach the public web.
-        $middleware->replace(ValidateCsrfToken::class, ValidateCsrfTokenUnlessNative::class);
+        //
+        // replaceInGroup, not replace: replace() only rewrites the *global*
+        // stack (Middleware::getGlobalMiddleware applies $replacements), and
+        // ValidateCsrfToken lives in the web group, which is rewritten from a
+        // separate $groupReplacements map. Calling replace() here silently did
+        // nothing, so the device build ran stock CSRF and answered POSTs with
+        // 419 whenever the WebView's token went stale.
+        $middleware->replaceInGroup('web', ValidateCsrfToken::class, ValidateCsrfTokenUnlessNative::class);
 
         $middleware->alias([
             'native.only' => EnsureNativePlatform::class,

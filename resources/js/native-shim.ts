@@ -9,7 +9,7 @@
  *
  * Every entry point mirrors the real bridge's signature and resolves to the
  * "not on a phone" answer, which is the path those components already take
- * when `isMobile()` returns false. Keep the shapes in step with
+ * when `IsMobile()` returns false. Keep the shapes in step with
  * vendor/nativephp/mobile/resources/dist/native.js.
  */
 export const Events = {
@@ -31,6 +31,13 @@ export const Events = {
 
 type NativeEventHandler = (payload: never) => void;
 
+type SecureStorageReadStatus = 'found' | 'not_found' | 'unavailable' | 'error';
+
+interface SecureStorageReadResult {
+    status: SecureStorageReadStatus;
+    value: string | null;
+}
+
 interface CaptureResult {
     id: string | null;
     path: string | null;
@@ -40,7 +47,7 @@ interface CaptureResult {
 
 /**
  * The real bridge returns a fluent builder that is also awaitable, so call
- * sites read `await camera.pickImages().images().id('gallery')`. The shim has
+ * sites read `await Camera.pickImages().images().id('gallery')`. The shim has
  * to keep that shape or those calls stop compiling.
  */
 class PendingCapture implements PromiseLike<CaptureResult> {
@@ -77,11 +84,15 @@ class PendingCapture implements PromiseLike<CaptureResult> {
     }
 }
 
-export async function isMobile(): Promise<boolean> {
+export async function IsMobile(): Promise<boolean> {
     return false;
 }
 
-export const camera = {
+export const System = {
+    isMobile: IsMobile,
+};
+
+export const Camera = {
     getPhoto(): PendingCapture {
         return new PendingCapture();
     },
@@ -93,32 +104,32 @@ export const camera = {
     },
 };
 
-export const browser = {
+export const Browser = {
     async open(url: string): Promise<boolean> {
         window.open(url, '_blank', 'noopener,noreferrer');
 
         return true;
     },
     async inApp(url: string): Promise<boolean> {
-        return browser.open(url);
+        return Browser.open(url);
     },
     async auth(url: string): Promise<boolean> {
-        return browser.open(url);
+        return Browser.open(url);
     },
 };
 
-export const secureStorage = {
-    async get(_key: string): Promise<string | null> {
-        return null;
+export const SecureStorage = {
+    async get(_key: string): Promise<SecureStorageReadResult> {
+        return { status: 'unavailable', value: null };
     },
-    async set(_key: string, _value: string): Promise<boolean> {
-        return false;
+    async set(_key: string, _value: string): Promise<{ success: boolean }> {
+        return { success: false };
     },
-    async delete(_key: string): Promise<boolean> {
-        return false;
+    async delete(_key: string): Promise<{ success: boolean }> {
+        return { success: false };
     },
 };
 
-export function on(_eventName: string, _callback: NativeEventHandler): void {}
+export function On(_eventName: string, _callback: NativeEventHandler): void {}
 
-export function off(_eventName: string, _callback: NativeEventHandler): void {}
+export function Off(_eventName: string, _callback: NativeEventHandler): void {}

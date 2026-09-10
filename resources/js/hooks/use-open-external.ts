@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 
-import { browser } from '#nativephp';
+import { Browser } from '#nativephp';
 import { type SharedData } from '@/types';
 
 /**
@@ -20,6 +20,6 @@ export function useOpenExternal() {
             return;
         }
 
-        void browser.open(url);
+        void Browser.open(url);
     };
 }
