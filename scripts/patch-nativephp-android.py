@@ -99,6 +99,21 @@ PATCHES = [
                "on Android 15+, so the setters are dead weight and the @Suppress with them.",
     },
     {
+        "name": "MainActivity: ignore shakes until PHP has booted",
+        "path": JAVA / "ui/MainActivity.kt",
+        "old": "            shakeDetector = ShakeDetector {\n"
+               "                NativeElementBridge.sendNativeEvent(",
+        "new": "            shakeDetector = ShakeDetector {\n"
+               "                // onResume() registers this before the boot thread has loaded\n"
+               "                // libphp_wrapper, so an early shake hits an unlinked JNI method\n"
+               "                // and throws UnsatisfiedLinkError (Play, versionCode 34).\n"
+               "                if (!bootReady) return@ShakeDetector\n"
+               "                NativeElementBridge.sendNativeEvent(",
+        "applied": "if (!bootReady) return@ShakeDetector",
+        "why": "A shake during startup called nativeElementWriteEvent before the native "
+               "library was loaded and killed the app.",
+    },
+    {
         "name": "BridgeFunctionRegistration: import SecureStorageFunctions",
         "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
         "old": "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",

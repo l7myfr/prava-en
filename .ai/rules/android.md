@@ -19,10 +19,11 @@ R8 is off (minify_enabled = false), so there is no mapping.txt and Play's "no de
 
 It applies these, in this order:
 1. MainActivity.initializeEnvironmentAsync(): skip onReady() when isFinishing || isDestroyed. onReady() builds the WebView and loads a URL, none of it valid on a dead Activity.
-2. MainActivity.configureStatusBar(): drops the deprecated `window.statusBarColor` / `window.navigationBarColor` setters (and the `@Suppress("DEPRECATION")` that came with them). Play flags these as deprecated for edge-to-edge, and `setDecorFitsSystemWindows(false)` already makes both bars transparent on Android 15+.
-3. Copies `scripts/android-patches/SecureStorageFunctions.kt` into `bridge/functions/`, imports it, and registers `SecureStorage.Set` / `.Get` / `.Delete`. See the secure storage rule below.
-4. Copies `scripts/android-patches/ReviewFunctions.kt` into `bridge/functions/`, imports it in `BridgeFunctionRegistration.kt`, registers it as `Review.Request`, and adds `com.google.android.play:review-ktx` to the Gradle dependencies. See the in-app review rule below.
-5. Strips keepDebugSymbols so Play actually gets debug symbols (see the debug symbol rule).
+2. MainActivity.registerShakeDetector(): ignore shakes until `bootReady`. onResume() registers the accelerometer listener before the boot thread has loaded libphp_wrapper, so a shake during startup calls the unlinked `nativeElementWriteEvent` and dies with UnsatisfiedLinkError. Seen once on Play (versionCode 34, POCO F6, 2026-09-21); still unfixed on upstream main as of 2026-09-27.
+3. MainActivity.configureStatusBar(): drops the deprecated `window.statusBarColor` / `window.navigationBarColor` setters (and the `@Suppress("DEPRECATION")` that came with them). Play flags these as deprecated for edge-to-edge, and `setDecorFitsSystemWindows(false)` already makes both bars transparent on Android 15+.
+4. Copies `scripts/android-patches/SecureStorageFunctions.kt` into `bridge/functions/`, imports it, and registers `SecureStorage.Set` / `.Get` / `.Delete`. See the secure storage rule below.
+5. Copies `scripts/android-patches/ReviewFunctions.kt` into `bridge/functions/`, imports it in `BridgeFunctionRegistration.kt`, registers it as `Review.Request`, and adds `com.google.android.play:review-ktx` to the Gradle dependencies. See the in-app review rule below.
+6. Strips keepDebugSymbols so Play actually gets debug symbols (see the debug symbol rule).
 
 Everything this script used to do about thread safety was deleted when the app moved to nativephp/mobile 4.x. Upstream's php_bridge.c now carries four named mutexes and boots one persistent interpreter per process, so our recursive lock, the JNI wrapper table, the process-wide Kotlin executor and the off-main-thread shutdown are all redundant. The fragment-transaction fix (commitNowAllowingStateLoss) and the on-device `config:cache` are upstream too. Do not re-add any of them.
 
