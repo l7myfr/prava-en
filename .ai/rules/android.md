@@ -12,7 +12,12 @@ After any `native:install --force`, run `python3 scripts/patch-nativephp-android
 
 Keep debugSymbolLevel = "FULL" (config nativephp.android.build.debug_symbols). Only libc++_shared.so, libphp_wrapper.so and libcompat.so carry symbols; libphp.so is stripped upstream. FULL costs 686 KB vs SYMBOL_TABLE's 1.8 MB here, and BUNDLE-METADATA never reaches user downloads.
 
-R8 is off (minify_enabled = false), so there is no mapping.txt and Play's "no deobfuscation file" warning is informational only. Do not enable R8 to silence it; NativePHP resolves classes reflectively.
+## R8 is on, with obfuscation, since 1.3.2
+Play's DEX optimization check scores obfuscation and flags anything under 25% (1.3.1 scored 1%, deadline Feb 2027), so config/nativephp.php now defaults minify_enabled, obfuscate, generate_mapping_files, keep_line_numbers and keep_source_file to true. The old "never enable R8, NativePHP resolves classes reflectively" note dates from 2.6.x; v4's proguard-rules.pro keeps every bridge class (`com.**.bridge.**`, which covers our SecureStorage and Review functions), NativeElementBridge and every class with native methods. Verified 2026-10-03 on the Pixel_9a emulator: boot, user creation, answering, restart persistence, Review.Request through JNI to Play Core, and dark mode all worked.
+
+AGP embeds the mapping in the AAB as BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map, so Play deobfuscates without a separate upload. The proguard placeholders are only substituted on a fresh `native:install`, so an existing tree keeps whatever obfuscation setting it was installed with; check proguard-rules.pro for a stray `-dontobfuscate` before building.
+
+If a release crashes with ClassNotFoundException or NoSuchMethodError from Kotlin code, add a keep rule through `custom_proguard_rules` in config/nativephp.php rather than turning R8 off.
 
 ## Run scripts/patch-nativephp-android.py after every native:install --force
 `native:install --force` regenerates nativephp/android from vendor and silently discards local fixes. The directory is gitignored, so nothing warns you. Run `python3 scripts/patch-nativephp-android.py` after every install and before any release build; it is idempotent and reports what it changed.
@@ -24,6 +29,7 @@ It applies these, in this order:
 4. Copies `scripts/android-patches/SecureStorageFunctions.kt` into `bridge/functions/`, imports it, and registers `SecureStorage.Set` / `.Get` / `.Delete`. See the secure storage rule below.
 5. Copies `scripts/android-patches/ReviewFunctions.kt` into `bridge/functions/`, imports it in `BridgeFunctionRegistration.kt`, registers it as `Review.Request`, and adds `com.google.android.play:review-ktx` to the Gradle dependencies. See the in-app review rule below.
 6. Strips keepDebugSymbols so Play actually gets debug symbols (see the debug symbol rule).
+7. MainActivity: replaces `WindowCompat.setDecorFitsSystemWindows(window, false)` with `enableEdgeToEdge()`, and strips `android:statusBarColor` / `android:navigationBarColor` from both themes.xml files. Play flagged both as deprecated edge-to-edge APIs on 1.3.1.
 
 Everything this script used to do about thread safety was deleted when the app moved to nativephp/mobile 4.x. Upstream's php_bridge.c now carries four named mutexes and boots one persistent interpreter per process, so our recursive lock, the JNI wrapper table, the process-wide Kotlin executor and the off-main-thread shutdown are all redundant. The fragment-transaction fix (commitNowAllowingStateLoss) and the on-device `config:cache` are upstream too. Do not re-add any of them.
 

@@ -313,19 +313,20 @@ return [
         |
         */
         'build' => [
-            // R8/ProGuard Configuration - currently disabled
-            'minify_enabled' => env('NATIVEPHP_ANDROID_MINIFY_ENABLED', false),
+            // R8 shrink + obfuscate. Play scores DEX optimization and flags
+            // anything under 25% obfuscation (deadline Feb 2027).
+            'minify_enabled' => env('NATIVEPHP_ANDROID_MINIFY_ENABLED', true),
             'shrink_resources' => env('NATIVEPHP_ANDROID_SHRINK_RESOURCES', false),
-            'obfuscate' => env('NATIVEPHP_ANDROID_OBFUSCATE', false),
+            'obfuscate' => env('NATIVEPHP_ANDROID_OBFUSCATE', true),
 
             // Debug Symbol Configuration - currently enabled
             'debug_symbols' => env('NATIVEPHP_ANDROID_DEBUG_SYMBOLS', 'FULL'),
-            'generate_mapping_files' => env('NATIVEPHP_ANDROID_MAPPING_FILES', false),
+            'generate_mapping_files' => env('NATIVEPHP_ANDROID_MAPPING_FILES', true),
             'mapping_file_path' => env('NATIVEPHP_ANDROID_MAPPING_PATH', 'build/outputs/mapping/release/'),
 
-            // ProGuard Rules - currently disabled
-            'keep_line_numbers' => env('NATIVEPHP_ANDROID_KEEP_LINE_NUMBERS', false),
-            'keep_source_file' => env('NATIVEPHP_ANDROID_KEEP_SOURCE_FILE', false),
+            // Keep line numbers so Play stack traces deobfuscate with mapping.txt
+            'keep_line_numbers' => env('NATIVEPHP_ANDROID_KEEP_LINE_NUMBERS', true),
+            'keep_source_file' => env('NATIVEPHP_ANDROID_KEEP_SOURCE_FILE', true),
             'custom_proguard_rules' => env('NATIVEPHP_ANDROID_CUSTOM_PROGUARD_RULES', []),
 
             // Build Performance - using Gradle defaults

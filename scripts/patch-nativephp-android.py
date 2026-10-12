@@ -99,6 +99,27 @@ PATCHES = [
                "on Android 15+, so the setters are dead weight and the @Suppress with them.",
     },
     {
+        "name": "MainActivity: import enableEdgeToEdge",
+        "path": JAVA / "ui/MainActivity.kt",
+        "old": "import androidx.activity.addCallback\n",
+        "new": "import androidx.activity.addCallback\n"
+               "import androidx.activity.enableEdgeToEdge\n",
+        "applied": "import androidx.activity.enableEdgeToEdge",
+        "why": "Pairs with the enableEdgeToEdge() call below.",
+    },
+    {
+        "name": "MainActivity: go edge-to-edge with enableEdgeToEdge()",
+        "path": JAVA / "ui/MainActivity.kt",
+        "old": "        // Android 15 edge-to-edge compatibility fix\n"
+               "        WindowCompat.setDecorFitsSystemWindows(window, false)\n",
+        "new": "        // Edge-to-edge on every API level, not just 35+ where it is enforced.\n"
+               "        // Play flags setDecorFitsSystemWindows as the deprecated route.\n"
+               "        enableEdgeToEdge()\n",
+        "applied": "        enableEdgeToEdge()\n",
+        "why": "Play warns \"Edge-to-edge may not display for all users\" unless the app "
+               "opts in for older Android versions too.",
+    },
+    {
         "name": "MainActivity: ignore shakes until PHP has booted",
         "path": JAVA / "ui/MainActivity.kt",
         "old": "            shakeDetector = ShakeDetector {\n"
@@ -171,6 +192,14 @@ PATCHES = [
 GRADLE = ANDROID / "app/build.gradle.kts"
 KEEP_SYMBOLS = 'keepDebugSymbols.add("**/*.so")'
 
+# Theme items Play reports as deprecated edge-to-edge APIs on Android 15+.
+# enableEdgeToEdge() makes the bars transparent instead.
+THEMES = [
+    ANDROID / "app/src/main/res/values/themes.xml",
+    ANDROID / "app/src/main/res/values-night/themes.xml",
+]
+DEPRECATED_THEME_ITEMS = ('name="android:statusBarColor"', 'name="android:navigationBarColor"')
+
 
 def copy_added_files() -> int:
     failures = 0
@@ -239,6 +268,28 @@ def strip_keep_debug_symbols() -> int:
     return 0
 
 
+def strip_deprecated_theme_items() -> int:
+    failures = 0
+    for theme in THEMES:
+        name = f"{theme.parent.name}/themes.xml: drop statusBarColor / navigationBarColor"
+        if not theme.exists():
+            print(f"[MISS] {name}\n       file not found: {theme}")
+            failures += 1
+            continue
+
+        lines = theme.read_text().splitlines(keepends=True)
+        kept = [ln for ln in lines if not any(item in ln for item in DEPRECATED_THEME_ITEMS)]
+        if len(kept) == len(lines):
+            print(f"[ ok ] {name} (already absent)")
+            continue
+
+        theme.write_text("".join(kept))
+        print(f"[ + ] {name}")
+        print("       Play flags these as deprecated edge-to-edge APIs; enableEdgeToEdge()")
+        print("       makes the bars transparent instead.")
+    return failures
+
+
 def main() -> int:
     if not ANDROID.is_dir():
         print(f"nativephp/android not found at {ANDROID}")
@@ -250,7 +301,12 @@ def main() -> int:
     except ValueError:
         where = ANDROID
     print(f"Patching {where}\n")
-    failures = copy_added_files() + apply_text_patches() + strip_keep_debug_symbols()
+    failures = (
+        copy_added_files()
+        + apply_text_patches()
+        + strip_keep_debug_symbols()
+        + strip_deprecated_theme_items()
+    )
     print()
     if failures:
         print(f"{failures} patch(es) could not be applied. Do not ship until resolved.")
