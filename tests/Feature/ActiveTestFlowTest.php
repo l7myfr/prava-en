@@ -419,3 +419,57 @@ describe('Showing results', function () {
         expect($test->configuration['show_results'])->toBeFalse();
     });
 });
+
+describe('Rules during a test', function () {
+    it('stores whether a self-made test lets you open the rules', function () {
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+
+        $this->actingAs($this->user)->post('/test', [
+            'test_type' => 'thematic',
+            'question_count' => 2,
+            'time_per_question' => 60,
+            'failure_threshold' => 10,
+            'category_ids' => [$this->category->id],
+            'allow_rules' => true,
+        ]);
+
+        $test = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($test->configuration['allow_rules'])->toBeTrue()
+            ->and($test->configuration['official_exam'])->toBeFalse();
+    });
+
+    it('never lets the official mock exam open the rules', function () {
+        $license = LicenseType::factory()->create(['code' => 'B']);
+        $this->questions->each(fn ($question) => $question->licenseTypes()->attach($license->id));
+        $this->user->update(['default_license_type_id' => $license->id]);
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+
+        $this->actingAs($this->user)->post('/test/quick', ['allow_rules' => true]);
+
+        $quick = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($quick->configuration['official_exam'])->toBeTrue()
+            ->and($quick->configuration['allow_rules'])->toBeFalse();
+    });
+
+    it('keeps a new similar test as open-book or exam as the one before', function () {
+        $this->testResult->update([
+            'test_type' => 'thematic',
+            'status' => TestResult::STATUS_PASSED,
+            'finished_at' => now(),
+            'configuration' => [
+                ...$this->testResult->configuration,
+                'category_ids' => [$this->category->id],
+                'allow_rules' => true,
+                'allow_answer_change' => true,
+                'official_exam' => false,
+            ],
+        ]);
+
+        $this->actingAs($this->user)->post("/test/{$this->testResult->id}/new-similar");
+
+        $similar = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($similar->id)->not->toBe($this->testResult->id)
+            ->and($similar->configuration['allow_rules'])->toBeTrue()
+            ->and($similar->configuration['allow_answer_change'])->toBeTrue();
+    });
+});

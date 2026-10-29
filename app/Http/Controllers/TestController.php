@@ -157,7 +157,7 @@ class TestController extends Controller
         // A request from the client never carries a mistake allowance: it is
         // either derived from the requested threshold or handed in by an
         // internal caller that resolved the official rules server-side.
-        return $this->createTest($request, null);
+        return $this->createTest($request, null, false);
     }
 
     /**
@@ -167,8 +167,9 @@ class TestController extends Controller
      * (the official exam rules for a licence category, or the configuration of a
      * test the user already sat). It is deliberately a parameter rather than a
      * request field so a client cannot post itself an unfailable exam.
+     * `$isOfficialExam` marks the mock exam, which locks answers and the rules.
      */
-    private function createTest(Request $request, ?int $officialAllowedWrong): RedirectResponse|JsonResponse
+    private function createTest(Request $request, ?int $officialAllowedWrong, bool $isOfficialExam): RedirectResponse|JsonResponse
     {
         $request->validate([
             'test_type' => 'required|in:thematic,bookmarked',
@@ -181,6 +182,7 @@ class TestController extends Controller
             'auto_advance' => 'boolean',
             'allow_answer_change' => 'boolean',
             'show_results' => 'boolean',
+            'allow_rules' => 'boolean',
             'abandon_active' => 'boolean',
         ]);
 
@@ -296,8 +298,10 @@ class TestController extends Controller
                 'category_ids' => $request->category_ids ?? [],
                 'auto_advance' => $request->has('auto_advance') ? $request->boolean('auto_advance') : ($user->test_auto_advance ?? true),
                 'shuffle_seed' => mt_rand() / mt_getrandmax(),
-                // An official mock exam never allows it, like the real exam.
-                'allow_answer_change' => $officialAllowedWrong === null && $request->boolean('allow_answer_change'),
+                'official_exam' => $isOfficialExam,
+                // An official mock exam never allows these, like the real exam.
+                'allow_answer_change' => ! $isOfficialExam && $request->boolean('allow_answer_change'),
+                'allow_rules' => ! $isOfficialExam && $request->boolean('allow_rules'),
                 'show_results' => $request->boolean('show_results', true),
             ],
             'questions_with_answers' => $questionsWithAnswers,
@@ -711,7 +715,7 @@ class TestController extends Controller
         $fakeRequest->setUserResolver(fn () => $user);
         $fakeRequest->headers->set('Accept', $request->header('Accept'));
 
-        return $this->createTest($fakeRequest, $spec['allowed_wrong']);
+        return $this->createTest($fakeRequest, $spec['allowed_wrong'], true);
     }
 
     /**
@@ -794,6 +798,7 @@ class TestController extends Controller
             'auto_advance' => (bool) ($config['auto_advance'] ?? true),
             'allow_answer_change' => (bool) ($config['allow_answer_change'] ?? false),
             'show_results' => (bool) ($config['show_results'] ?? true),
+            'allow_rules' => (bool) ($config['allow_rules'] ?? false),
             'abandon_active' => $request->boolean('abandon_active'),
         ]);
 
@@ -806,7 +811,8 @@ class TestController extends Controller
 
         return $this->createTest(
             $fakeRequest,
-            is_numeric($storedAllowance) ? (int) $storedAllowance : null
+            is_numeric($storedAllowance) ? (int) $storedAllowance : null,
+            (bool) ($config['official_exam'] ?? false)
         );
     }
 }

@@ -11,6 +11,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import { useLanguage } from '@/hooks/use-language';
+import { openBackLayer } from '@/lib/back-layers';
 import { cn } from '@/lib/utils';
 
 const minScale = 1;
@@ -61,21 +62,21 @@ export function ImageViewer({ src, alt, onClose }: ImageViewerProps) {
             window.location.href,
         );
 
+        // Only the viewer closes; the sheet or page underneath stays.
+        const layer = openBackLayer();
         const handlePopState = (e: PopStateEvent) => {
-            // Only the viewer closes; the sheet or page underneath stays.
-            e.stopImmediatePropagation();
-            onClose();
+            if (layer.claim(e)) onClose();
         };
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') window.history.back();
         };
 
-        // Capture so this runs before the layout's and sheets' handlers.
-        window.addEventListener('popstate', handlePopState, true);
+        window.addEventListener('popstate', handlePopState);
         window.addEventListener('keydown', handleKey);
 
         return () => {
-            window.removeEventListener('popstate', handlePopState, true);
+            layer.release();
+            window.removeEventListener('popstate', handlePopState);
             window.removeEventListener('keydown', handleKey);
         };
     }, [onClose]);

@@ -20,10 +20,13 @@ let diagramCount = 0;
 export function RulesContent({
     html,
     highlight,
+    onChapterLink,
 }: {
     html: string;
     /** Words from a rules search to mark in the text. */
     highlight?: string;
+    /** Open a linked chapter in place instead of navigating to it. */
+    onChapterLink?: (slug: string) => void;
 }) {
     const container = useRef<HTMLDivElement>(null);
     const [zoomed, setZoomed] = useState<{ src: string; alt: string } | null>(
@@ -117,7 +120,12 @@ export function RulesContent({
         const link = target.closest<HTMLAnchorElement>('a[data-rule-link]');
         if (link) {
             e.preventDefault();
-            router.visit(`/rules/${link.dataset.ruleLink}`);
+            const slug = link.dataset.ruleLink ?? '';
+            if (onChapterLink) {
+                onChapterLink(slug);
+            } else {
+                router.visit(`/rules/${slug}`);
+            }
             return;
         }
 

@@ -8,6 +8,7 @@ import { TestResultStats } from '@/components/test-result-stats';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
+import { backIsForPage } from '@/lib/back-layers';
 import {
     buildAnswerStates,
     formatDate,
@@ -62,7 +63,8 @@ export default function HistoryShow({ testResult }: Props) {
 
     // Handle Android back button
     useEffect(() => {
-        const handlePopState = () => {
+        const handlePopState = (e: PopStateEvent) => {
+            if (!backIsForPage(e)) return;
             router.visit('/test/history');
         };
 

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ZoomableImage } from '@/components/zoomable-image';
 import { useLanguage } from '@/hooks/use-language';
+import { openBackLayer } from '@/lib/back-layers';
 
 interface Sign {
     id: number;
@@ -60,23 +61,19 @@ export function SignPreview({
 
     // Handle Android back button - close preview on first press
     useEffect(() => {
+        if (!sign) return;
+
+        const layer = openBackLayer();
         const handlePopState = (e: PopStateEvent) => {
-            if (sign) {
-                e.preventDefault();
-                // Set flag so mobile layout knows back was handled
-                (window as Window & { __backHandled?: boolean }).__backHandled =
-                    true;
-                onClose();
-                window.history.pushState(null, '', window.location.href);
-            }
+            if (layer.claim(e)) onClose();
         };
 
-        if (sign) {
-            window.history.pushState(null, '', window.location.href);
-        }
-
+        window.history.pushState(null, '', window.location.href);
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
+        return () => {
+            layer.release();
+            window.removeEventListener('popstate', handlePopState);
+        };
     }, [sign, onClose]);
 
     // Fetch related questions when expanded

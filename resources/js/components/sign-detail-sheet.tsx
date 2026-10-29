@@ -14,6 +14,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ZoomableImage } from '@/components/zoomable-image';
 import { useLanguage } from '@/hooks/use-language';
+import { openBackLayer } from '@/lib/back-layers';
 
 interface Sign {
     id: number;
@@ -52,20 +53,19 @@ export function SignDetailSheet({
 
     // Handle Android back button to close sheet instead of navigating
     useEffect(() => {
+        if (!open) return;
+
+        const layer = openBackLayer();
         const handlePopState = (e: PopStateEvent) => {
-            if (open) {
-                e.preventDefault();
-                onOpenChange(false);
-                window.history.pushState(null, '', window.location.href);
-            }
+            if (layer.claim(e)) onOpenChange(false);
         };
 
-        if (open) {
-            window.history.pushState(null, '', window.location.href);
-        }
-
+        window.history.pushState(null, '', window.location.href);
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
+        return () => {
+            layer.release();
+            window.removeEventListener('popstate', handlePopState);
+        };
     }, [open, onOpenChange]);
 
     // Fetch related questions count

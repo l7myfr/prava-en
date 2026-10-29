@@ -13,11 +13,19 @@ import {
     TriangleAlert,
     X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useEffectEvent,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
 import { AnswerSettings } from '@/components/answer-settings';
 import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Question, QuestionCard } from '@/components/question-card';
+import { RulesSheetButton } from '@/components/rules-sheet';
 import { ScrollJumpButtons } from '@/components/scroll-jump-buttons';
 import { SignsInfoDialog } from '@/components/signs-info-dialog';
 import { Button } from '@/components/ui/button';
@@ -523,9 +531,22 @@ export default function QuestionsIndex({
         setHiddenSince(value ? null : answeredOnPage);
     };
 
-    useEffect(() => {
+    // Each page opens as a new round. Answers kept from earlier visits are
+    // already on it and must not count as finishing it, or a page done before
+    // shows right/wrong straight away with the switch off.
+    const startRound = useEffectEvent(() => {
         setRevealedManually(false);
-        setHiddenSince(null);
+        setHiddenSince(
+            questions.data.filter(
+                (q) =>
+                    answerStates[q.id]?.selectedAnswerId ||
+                    userProgress[q.id]?.last_answer_id,
+            ).length,
+        );
+    });
+
+    useEffect(() => {
+        startRound();
     }, [questions.data]);
 
     const handleBookmark = useCallback(async (questionId: number) => {
@@ -727,6 +748,8 @@ export default function QuestionsIndex({
                     )}
 
                     <div className="flex items-center gap-2">
+                        <RulesSheetButton />
+
                         {/* Bookmarked Questions Toggle */}
                         <Button
                             variant="outline"

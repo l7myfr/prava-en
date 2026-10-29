@@ -196,6 +196,7 @@ export default function TestIndex({
         auto_advance: userDefaults.auto_advance ?? true,
         allow_answer_change: false,
         show_results: true,
+        allow_rules: true,
     });
 
     // Allowed mistakes for the custom test the user is configuring. The
@@ -321,6 +322,7 @@ export default function TestIndex({
                 failure_threshold: pendingTemplate.failure_threshold,
                 category_ids: pendingTemplate.category_ids || [],
                 auto_advance: userDefaults.auto_advance ?? true,
+                allow_rules: true,
                 abandon_active: true,
             });
         }
@@ -353,6 +355,7 @@ export default function TestIndex({
             failure_threshold: template.failure_threshold,
             category_ids: template.category_ids || [],
             auto_advance: userDefaults.auto_advance ?? true,
+            allow_rules: true,
         });
         setTestType('thematic');
     };
@@ -373,6 +376,7 @@ export default function TestIndex({
             failure_threshold: template.failure_threshold,
             category_ids: template.category_ids || [],
             auto_advance: userDefaults.auto_advance ?? true,
+            allow_rules: true,
         });
     };
 
@@ -1008,6 +1012,26 @@ export default function TestIndex({
                                 checked={form.data.show_results}
                                 onCheckedChange={(v) =>
                                     form.setData('show_results', v)
+                                }
+                            />
+                        </div>
+
+                        {/* Open the rules during the test (never in the official mock exam) */}
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label className="text-sm leading-relaxed">
+                                    {t('წესები ტესტის დროს')}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t(
+                                        'ტესტის შიგნიდან შეგიძლია წესებში ჩაიხედო',
+                                    )}
+                                </p>
+                            </div>
+                            <Switch
+                                checked={form.data.allow_rules}
+                                onCheckedChange={(v) =>
+                                    form.setData('allow_rules', v)
                                 }
                             />
                         </div>

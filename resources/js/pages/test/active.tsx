@@ -23,6 +23,7 @@ import {
 import { AnswerSettings } from '@/components/answer-settings';
 import { LanguageToggle } from '@/components/language-toggle';
 import { QuestionCard } from '@/components/question-card';
+import { RulesSheetButton } from '@/components/rules-sheet';
 import { ScrollJumpButtons } from '@/components/scroll-jump-buttons';
 import { SignsInfoDialog } from '@/components/signs-info-dialog';
 import {
@@ -38,6 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
+import { backIsForPage } from '@/lib/back-layers';
 import { goBack } from '@/lib/back-navigation';
 import { cn } from '@/lib/utils';
 
@@ -90,6 +92,8 @@ interface TestResultData {
         shuffle_seed: number;
         allow_answer_change?: boolean;
         show_results?: boolean;
+        official_exam?: boolean;
+        allow_rules?: boolean;
     };
     questions: TestQuestion[];
     current_question_index: number;
@@ -316,6 +320,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
     // Handle back button during test
     useEffect(() => {
         const handlePopState = (e: PopStateEvent) => {
+            if (!backIsForPage(e)) return;
             e.preventDefault();
             window.history.pushState(null, '', window.location.href);
             setShowPauseDialog(true);
@@ -648,22 +653,34 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                 <AnswerSettings
                     className="mx-auto w-full max-w-3xl justify-center border-t px-3 py-1"
                     allowChange={canChangeAnswer}
-                    changeLocked={testResult.test_type === 'quick'}
+                    changeLocked={!!testResult.configuration.official_exam}
                     showResults={showResults}
                     onShowResults={changeShowResults}
                 />
 
                 {/* Row 2: Pause (left), Auto-advance toggle (center), Skip (right) */}
                 <div className="mx-auto flex w-full max-w-3xl items-center justify-between border-t bg-muted/30 px-3 py-1.5">
-                    {/* Pause Button */}
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowPauseDialog(true)}
-                        className="h-8 w-8"
-                    >
-                        <Pause className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {/* Pause Button */}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setShowPauseDialog(true)}
+                            className="h-8 w-8"
+                        >
+                            <Pause className="h-4 w-4" />
+                        </Button>
+
+                        <RulesSheetButton
+                            locked={
+                                testResult.configuration.official_exam
+                                    ? 'exam'
+                                    : testResult.configuration.allow_rules
+                                      ? undefined
+                                      : 'setting'
+                            }
+                        />
+                    </div>
 
                     <LanguageToggle />
 

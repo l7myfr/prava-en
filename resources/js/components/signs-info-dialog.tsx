@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { ZoomableImage } from '@/components/zoomable-image';
 import { useLanguage } from '@/hooks/use-language';
+import { openBackLayer } from '@/lib/back-layers';
 
 interface Sign {
     id: number;
@@ -37,22 +38,19 @@ export function SignsInfoDialog({
 
     // Handle Android back button to close modal instead of navigating
     useEffect(() => {
+        if (!open) return;
+
+        const layer = openBackLayer();
         const handlePopState = (e: PopStateEvent) => {
-            if (open) {
-                e.preventDefault();
-                onOpenChange(false);
-                // Re-push state to prevent actual navigation
-                window.history.pushState(null, '', window.location.href);
-            }
+            if (layer.claim(e)) onOpenChange(false);
         };
 
-        // Push initial state when modal opens
-        if (open) {
-            window.history.pushState(null, '', window.location.href);
-        }
-
+        window.history.pushState(null, '', window.location.href);
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
+        return () => {
+            layer.release();
+            window.removeEventListener('popstate', handlePopState);
+        };
     }, [open, onOpenChange]);
 
     const handleOpenChange = (newOpen: boolean) => {

@@ -344,4 +344,13 @@ export const uiEnglish: Record<string, string> = {
         'Search the rules… (e.g. U-turn, 3.24)',
     '{count} შედეგი': '{count} results',
     'ვერაფერი მოიძებნა': 'Nothing found',
+    'წესები ტესტის დროს': 'Rules during the test',
+    'ტესტის შიგნიდან შეგიძლია წესებში ჩაიხედო':
+        'Look things up in the rules without leaving the test',
+    'საგამოცდო ტესტში წესები გამორთულია': 'Rules are off in the mock exam',
+    'ნამდვილ გამოცდაზეც ვერ ჩაიხედავ. წესები ხელმისაწვდომია ბილეთებში და შენ მიერ შექმნილ ტესტებში.':
+        "You can't look anything up in the real exam either. The rules are available in topic practice and in tests you set up yourself.",
+    'ამ ტესტში წესები გამორთულია': 'Rules are off for this test',
+    'ტესტის შექმნისას ჩართე „წესები ტესტის დროს“, რომ ტესტის შიგნიდან ჩაიხედო.':
+        'Turn on "Rules during the test" when you set up a test to use them inside it.',
 };

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
+import { backIsForPage } from '@/lib/back-layers';
 import { goBack } from '@/lib/back-navigation';
 import {
     buildAnswerStates,
@@ -107,7 +108,8 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
 
     // Handle Android back button
     useEffect(() => {
-        const handlePopState = () => {
+        const handlePopState = (e: PopStateEvent) => {
+            if (!backIsForPage(e)) return;
             goBack('/test', { leavingTest: true });
         };
 

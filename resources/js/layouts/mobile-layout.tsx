@@ -19,6 +19,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { SettingsSheet } from '@/components/settings-sheet';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-language';
+import { backIsForPage } from '@/lib/back-layers';
 import { goBack } from '@/lib/back-navigation';
 import { customizationStyle } from '@/lib/customization';
 import { cn } from '@/lib/utils';
@@ -100,12 +101,8 @@ export default function MobileLayout({
 
     useEffect(() => {
         const handlePopState = (e: PopStateEvent) => {
-            // Check if another component (like SignPreview) already handled this
-            const win = window as Window & { __backHandled?: boolean };
-            if (win.__backHandled) {
-                win.__backHandled = false;
-                return;
-            }
+            // An open sheet, dialog or image viewer takes the press instead
+            if (!backIsForPage(e)) return;
 
             const shouldClose = handleBackButton();
             if (!shouldClose) {
