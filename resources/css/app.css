@@ -299,3 +299,9 @@
 :root[data-text-size='xlarge'] {
     font-size: 19px;
 }
+
+/* Section headings jumped to from rules search sit below the sticky header */
+.rules-content h2,
+.rules-content h3 {
+    scroll-margin-top: 0.75rem;
+}

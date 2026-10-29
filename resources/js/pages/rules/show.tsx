@@ -15,7 +15,22 @@ export default function RulesShow({ chapter: slug }: { chapter: string }) {
     const previous = rules.chapters[index - 1];
     const next = rules.chapters[index + 1];
 
+    // Opened from a search result: highlight the words, jump to the section
+    const highlight =
+        typeof window === 'undefined'
+            ? ''
+            : (new URLSearchParams(window.location.search).get('q') ?? '');
+
     useEffect(() => {
+        const anchor = window.location.hash.slice(1);
+        const target = anchor ? document.getElementById(anchor) : null;
+        if (target) {
+            const timer = setTimeout(
+                () => target.scrollIntoView({ block: 'start' }),
+                50,
+            );
+            return () => clearTimeout(timer);
+        }
         document.getElementById('main-scroll-container')?.scrollTo(0, 0);
     }, [slug]);
 
@@ -41,7 +56,10 @@ export default function RulesShow({ chapter: slug }: { chapter: string }) {
                     {chapter.title[language]}
                 </h2>
 
-                <RulesContent html={chapter.html[language]} />
+                <RulesContent
+                    html={chapter.html[language]}
+                    highlight={highlight}
+                />
 
                 <nav className="mt-8 grid grid-cols-[1fr_auto_1fr] items-stretch gap-2">
                     {previous ? (

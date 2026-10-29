@@ -340,4 +340,8 @@ export const uiEnglish: Record<string, string> = {
     ზემოთ: 'Scroll to top',
     ქვემოთ: 'Scroll to bottom',
     განმარტება: 'Explanation',
+    'წესებში ძებნა… (მაგ. მობრუნება, 3.24)':
+        'Search the rules… (e.g. U-turn, 3.24)',
+    '{count} შედეგი': '{count} results',
+    'ვერაფერი მოიძებნა': 'Nothing found',
 };

@@ -96,7 +96,11 @@ function convert(markdown, { signIcons = true } = {}) {
                 : text;
         });
 
-    const rendered = marked.parse(html, { gfm: true, breaks: false });
+    // Number the section headings so search results can link straight to them
+    let section = 0;
+    const rendered = marked
+        .parse(html, { gfm: true, breaks: false })
+        .replace(/<h([23])>/g, (_, level) => `<h${level} id="s${++section}">`);
 
     return (signIcons ? addSignIcons(rendered) : rendered).replace(
         /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,

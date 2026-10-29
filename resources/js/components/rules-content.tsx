@@ -17,13 +17,61 @@ let diagramCount = 0;
  * picture opens the zoom viewer, and flowcharts are drawn with Mermaid, which
  * is only loaded on chapters that have one.
  */
-export function RulesContent({ html }: { html: string }) {
+export function RulesContent({
+    html,
+    highlight,
+}: {
+    html: string;
+    /** Words from a rules search to mark in the text. */
+    highlight?: string;
+}) {
     const container = useRef<HTMLDivElement>(null);
     const [zoomed, setZoomed] = useState<{ src: string; alt: string } | null>(
         null,
     );
     const { resolvedAppearance } = useAppearance();
     const closeViewer = useCallback(() => setZoomed(null), []);
+
+    // Mark search words in the rendered text (not inside flowcharts)
+    useEffect(() => {
+        const root = container.current;
+        const words = (highlight ?? '')
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length >= 2);
+        if (!root || !words.length) return;
+
+        const pattern = new RegExp(
+            `(${words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+            'gi',
+        );
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) =>
+                node.parentElement?.closest('.rules-mermaid, mark') ||
+                !pattern.test(node.textContent ?? '')
+                    ? NodeFilter.FILTER_REJECT
+                    : NodeFilter.FILTER_ACCEPT,
+        });
+        const nodes: Text[] = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+
+        for (const node of nodes) {
+            const fragment = document.createDocumentFragment();
+            for (const piece of (node.textContent ?? '').split(pattern)) {
+                if (!piece) continue;
+                if (words.includes(piece.toLowerCase())) {
+                    const mark = document.createElement('mark');
+                    mark.className =
+                        'rounded bg-yellow-300/80 px-0.5 text-foreground dark:bg-yellow-500/40';
+                    mark.textContent = piece;
+                    fragment.append(mark);
+                } else {
+                    fragment.append(piece);
+                }
+            }
+            node.replaceWith(fragment);
+        }
+    }, [html, highlight]);
 
     useEffect(() => {
         const diagrams = [
