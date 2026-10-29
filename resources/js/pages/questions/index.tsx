@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnswerSettings } from '@/components/answer-settings';
 import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Question, QuestionCard } from '@/components/question-card';
+import { ScrollJumpButtons } from '@/components/scroll-jump-buttons';
 import { SignsInfoDialog } from '@/components/signs-info-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -502,17 +503,29 @@ export default function QuestionsIndex({
     );
 
     // With results hidden, right/wrong appears once every question on the
-    // page is answered, or when asked for.
+    // page is answered, or when asked for. Switching hiding back on starts a
+    // new round: answers already on the page don't count towards revealing,
+    // or the switch would look like it does nothing.
     const answeredOnPage = questions.data.filter(
         (q) => answerStates[q.id]?.selectedAnswerId,
     ).length;
+    const [hiddenSince, setHiddenSince] = useState<number | null>(null);
     const resultsVisible =
         showResults ||
         revealedManually ||
-        (questions.data.length > 0 && answeredOnPage === questions.data.length);
+        (questions.data.length > 0 &&
+            answeredOnPage === questions.data.length &&
+            answeredOnPage > (hiddenSince ?? -1));
+
+    const changeShowResults = (value: boolean) => {
+        setShowResults(value);
+        setRevealedManually(false);
+        setHiddenSince(value ? null : answeredOnPage);
+    };
 
     useEffect(() => {
         setRevealedManually(false);
+        setHiddenSince(null);
     }, [questions.data]);
 
     const handleBookmark = useCallback(async (questionId: number) => {
@@ -930,7 +943,7 @@ export default function QuestionsIndex({
                     allowChange={allowChange}
                     onAllowChange={setAllowChange}
                     showResults={showResults}
-                    onShowResults={setShowResults}
+                    onShowResults={changeShowResults}
                 />
             </div>
 
@@ -1013,6 +1026,8 @@ export default function QuestionsIndex({
                 onPageChange={goToPage}
                 onPerPageChange={handlePerPageChange}
             />
+
+            <ScrollJumpButtons />
 
             {/* FAB - Start Test with Current Filters */}
             <div

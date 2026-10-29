@@ -64,6 +64,8 @@ interface QuestionCardProps {
     allowAnswerChange?: boolean;
     /** Show only which answer was picked, not whether it was right. */
     hideResult?: boolean;
+    /** Show the explanation under the answers once answered (results). */
+    showExplanation?: boolean;
     id?: string;
 }
 
@@ -80,6 +82,7 @@ export function QuestionCard({
     testMode = false,
     allowAnswerChange = false,
     hideResult = false,
+    showExplanation = false,
     id,
 }: QuestionCardProps) {
     const { t, tc } = useLanguage();
@@ -258,6 +261,31 @@ export function QuestionCard({
                         </button>
                     ))}
                 </div>
+
+                {showExplanation &&
+                    !hideResult &&
+                    (question.description || question.image_custom) && (
+                        <div className="mt-3 space-y-2 rounded-lg border bg-muted/40 p-3">
+                            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                {t('განმარტება')}
+                            </p>
+                            {question.image_custom && (
+                                <ZoomableImage
+                                    src={`/images/ticket_images_custom_webp/${question.image_custom}`}
+                                    alt=""
+                                    className="w-full rounded-md object-contain"
+                                />
+                            )}
+                            {question.description && (
+                                <p className="text-sm leading-relaxed">
+                                    {tc(question.description).replace(
+                                        /^ბილეთის განმარტება:\s*ბილეთის გვერდი\s*/,
+                                        '',
+                                    )}
+                                </p>
+                            )}
+                        </div>
+                    )}
             </CardContent>
         </Card>
     );

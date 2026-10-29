@@ -8,6 +8,8 @@ interface QuestionListProps {
     answerStates: Record<number, AnswerState>;
     shuffleSeed?: number;
     emptyMessage?: string;
+    /** Show each question's explanation under its answers. */
+    showExplanations?: boolean;
 }
 
 export function QuestionList({
@@ -15,6 +17,7 @@ export function QuestionList({
     answerStates,
     shuffleSeed = 0,
     emptyMessage = 'კითხვები არ არის',
+    showExplanations = false,
 }: QuestionListProps) {
     const { t } = useLanguage();
     if (questions.length === 0) {
@@ -40,6 +43,7 @@ export function QuestionList({
                     onBookmark={() => {}}
                     onInfoClick={() => {}}
                     testMode={true}
+                    showExplanation={showExplanations}
                 />
             ))}
         </div>

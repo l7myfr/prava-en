@@ -219,6 +219,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={wrongAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
+                            showExplanations
                             emptyMessage={t('არასწორი პასუხები არ არის')}
                         />
                     </TabsContent>
@@ -228,6 +229,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={correctAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
+                            showExplanations
                             emptyMessage={t('სწორი პასუხები არ არის')}
                         />
                     </TabsContent>
@@ -237,6 +239,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={skippedQuestions}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
+                            showExplanations
                             emptyMessage={t('გამოტოვებული კითხვები არ არის')}
                         />
                     </TabsContent>

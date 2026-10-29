@@ -23,6 +23,7 @@ import {
 import { AnswerSettings } from '@/components/answer-settings';
 import { LanguageToggle } from '@/components/language-toggle';
 import { QuestionCard } from '@/components/question-card';
+import { ScrollJumpButtons } from '@/components/scroll-jump-buttons';
 import { SignsInfoDialog } from '@/components/signs-info-dialog';
 import {
     AlertDialog,
@@ -225,10 +226,18 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
     const [showResults, setShowResults] = useState(
         testResult.configuration.show_results ?? true,
     );
-    // Hidden results come back once every question has an answer.
+    // Hidden results come back once every question has an answer. Hiding them
+    // again starts a new round, so the switch always has a visible effect.
+    const answeredCount = Object.keys(answersGiven).length;
+    const [hiddenSince, setHiddenSince] = useState<number | null>(null);
     const resultsVisible =
         showResults ||
-        Object.keys(answersGiven).length >= testResult.total_questions;
+        (answeredCount >= testResult.total_questions &&
+            answeredCount > (hiddenSince ?? -1));
+    const changeShowResults = (value: boolean) => {
+        setShowResults(value);
+        setHiddenSince(value ? null : answeredCount);
+    };
     const allowedWrong = testResult.allowed_wrong;
 
     // Build answer state for QuestionCard
@@ -641,7 +650,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     allowChange={canChangeAnswer}
                     changeLocked={testResult.test_type === 'quick'}
                     showResults={showResults}
-                    onShowResults={setShowResults}
+                    onShowResults={changeShowResults}
                 />
 
                 {/* Row 2: Pause (left), Auto-advance toggle (center), Skip (right) */}
@@ -715,6 +724,8 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     />
                 </div>
             </main>
+
+            <ScrollJumpButtons bottom="calc(var(--inset-bottom, 0px) + 5.5rem)" />
 
             {/* Bottom Navigation Bar */}
             <nav

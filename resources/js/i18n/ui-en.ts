@@ -337,4 +337,7 @@ export const uiEnglish: Record<string, string> = {
     'ხატულა შეიცვალა. შეიძლება რამდენიმე წამი დასჭირდეს.':
         'Icon changed. It can take a few seconds to show.',
     'პროფილი ვერ წაიშალა': "Couldn't delete the profile",
+    ზემოთ: 'Scroll to top',
+    ქვემოთ: 'Scroll to bottom',
+    განმარტება: 'Explanation',
 };

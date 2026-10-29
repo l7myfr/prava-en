@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="640" viewBox="0 0 700 640" font-family="Segoe UI, Sylfaen, Noto Sans Georgian, DejaVu Sans, sans-serif">
+  <defs>
+    <marker id="ag" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2E9E5B"/></marker>
+  </defs>
+  <rect x="0" y="0" width="700" height="640" rx="16" fill="#ffffff"/>
+  <rect x="1" y="1" width="698" height="638" rx="15" fill="none" stroke="#d6dbe1" stroke-width="2"/>
+  <text x="350" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2937">სად მოქმედებს ნიშანი?</text>
+
+  <!-- 1: until the next intersection -->
+  <text x="28" y="78" font-size="17" font-weight="700" fill="#1f2937">1. ნიშნიდან უახლოეს გზაჯვარედინამდე</text>
+  <text x="28" y="100" font-size="14" fill="#4b5563">3.16, 3.20, 3.22, 3.24, 3.26–3.30, 4.6 (დას. პუნქტში გზაჯვარედინის გარეშე – მის ბოლომდე)</text>
+  <rect x="28" y="118" width="644" height="60" fill="#475569"/>
+  <rect x="520" y="104" width="70" height="88" fill="#475569"/>
+  <g fill="#ffffff"><rect x="40" y="146" width="30" height="4"/><rect x="100" y="146" width="30" height="4"/><rect x="160" y="146" width="30" height="4"/><rect x="220" y="146" width="30" height="4"/><rect x="280" y="146" width="30" height="4"/><rect x="340" y="146" width="30" height="4"/><rect x="400" y="146" width="30" height="4"/><rect x="460" y="146" width="30" height="4"/><rect x="610" y="146" width="30" height="4"/></g>
+  <circle cx="70" cy="104" r="13" fill="#ffffff" stroke="#D64545" stroke-width="5"/>
+  <text x="70" y="109" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">40</text>
+  <line x1="84" y1="196" x2="512" y2="196" stroke="#2E9E5B" stroke-width="4" marker-end="url(#ag)"/>
+  <text x="298" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#2E9E5B">ნიშანი მოქმედებს</text>
+  <text x="600" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#D64545">აქ მთავრდება</text>
+
+  <!-- 2: only this side -->
+  <text x="28" y="262" font-size="17" font-weight="700" fill="#1f2937">2. მხოლოდ გზის იმ მხარეს, სადაც ნიშანი დგას</text>
+  <text x="28" y="284" font-size="14" fill="#4b5563">3.10 და 3.27–3.30 (გაჩერება/დგომა აკრძალულია, ქვეითები აკრძალულია)</text>
+  <rect x="28" y="300" width="644" height="80" fill="#475569"/>
+  <g fill="#ffffff"><rect x="40" y="338" width="30" height="4"/><rect x="100" y="338" width="30" height="4"/><rect x="160" y="338" width="30" height="4"/><rect x="220" y="338" width="30" height="4"/><rect x="280" y="338" width="30" height="4"/><rect x="340" y="338" width="30" height="4"/><rect x="400" y="338" width="30" height="4"/><rect x="460" y="338" width="30" height="4"/><rect x="520" y="338" width="30" height="4"/><rect x="580" y="338" width="30" height="4"/><rect x="640" y="338" width="30" height="4"/></g>
+  <rect x="84" y="366" width="588" height="14" fill="#D64545" opacity="0.85"/>
+  <rect x="84" y="300" width="588" height="14" fill="#2E9E5B" opacity="0.85"/>
+  <circle cx="70" cy="398" r="13" fill="#1d4ed8" stroke="#D64545" stroke-width="5"/>
+  <line x1="62" y1="390" x2="78" y2="406" stroke="#D64545" stroke-width="4"/>
+  <text x="380" y="412" text-anchor="middle" font-size="14" font-weight="700" fill="#D64545">ამ მხარეს: აკრძალულია</text>
+  <text x="380" y="292" text-anchor="middle" font-size="14" font-weight="700" fill="#2E9E5B">მეორე მხარეს: ნიშანი არ მოქმედებს</text>
+
+  <!-- 3: only the next intersection -->
+  <text x="28" y="456" font-size="17" font-weight="700" fill="#1f2937">3. მხოლოდ ნიშნის შემდეგ პირველ გადაკვეთაზე</text>
+  <text x="28" y="478" font-size="14" fill="#4b5563">3.18.1, 3.18.2 (მოხვევა აკრძალულია) და 4.1.1–4.1.6 (მიმართულების ისრები)</text>
+  <rect x="28" y="520" width="644" height="60" fill="#475569"/>
+  <rect x="300" y="492" width="80" height="118" fill="#475569"/>
+  <rect x="300" y="520" width="80" height="60" fill="#facc15" opacity="0.55"/>
+  <rect x="452" y="520" width="220" height="60" fill="#475569"/>
+  <circle cx="262" cy="504" r="13" fill="#1d4ed8"/>
+  <path d="M262 514 L262 498 M256 504 L262 497 L268 504" stroke="#ffffff" stroke-width="3" fill="none"/>
+  <text x="340" y="626" text-anchor="middle" font-size="14" font-weight="700" fill="#b45309">მოქმედებს მხოლოდ აქ</text>
+  <text x="560" y="510" text-anchor="middle" font-size="14" font-weight="700" fill="#2E9E5B">შემდეგ გზაჯვარედინზე: თავისუფალია</text>
+</svg>
