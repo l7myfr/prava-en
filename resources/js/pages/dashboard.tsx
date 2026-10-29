@@ -13,6 +13,7 @@ import {
 import { useEffect } from 'react';
 
 import { ActiveTestCard } from '@/components/active-test-card';
+import { HomeBanner } from '@/components/home-banner';
 import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -155,6 +156,8 @@ export default function Dashboard({
         <MobileLayout>
             <Head title={t('მთავარი')} />
             <div className="flex flex-col gap-4 p-4">
+                <HomeBanner />
+
                 {/* User Profile Card */}
                 <Card>
                     <CardContent className="flex items-center gap-4 p-4">

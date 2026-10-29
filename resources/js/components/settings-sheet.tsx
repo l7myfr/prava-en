@@ -29,6 +29,7 @@ import {
     SecureStorage,
 } from '#nativephp';
 import { BackupActions } from '@/components/backup-actions';
+import { CustomizationSettings } from '@/components/customization-settings';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
 import {
     type Accent,
@@ -39,6 +40,7 @@ import {
 } from '@/hooks/use-customization';
 import { useLanguage } from '@/hooks/use-language';
 import { useOpenExternal } from '@/hooks/use-open-external';
+import { getGalleryTarget, setGalleryTarget } from '@/lib/gallery-target';
 import { cn } from '@/lib/utils';
 import { logout } from '@/routes/auth';
 import { type LicenseType, type SharedData } from '@/types';
@@ -499,6 +501,7 @@ function MainView({
                         </h4>
                         <TextSizePicker />
                     </div>
+                    <CustomizationSettings />
                 </div>
             </div>
 
@@ -797,6 +800,7 @@ function ProfileView({
     const handleTakePhoto = async () => {
         console.log('Settings: handleTakePhoto called');
         setShowImagePicker(false);
+        setGalleryTarget('profile');
         try {
             console.log('Settings: Calling NativeCamera.getPhoto()...');
             await NativeCamera.getPhoto().id('settings-photo');
@@ -810,6 +814,7 @@ function ProfileView({
     const handlePickFromGallery = async () => {
         console.log('Settings: handlePickFromGallery called');
         setShowImagePicker(false);
+        setGalleryTarget('profile');
         try {
             console.log('Settings: Calling NativeCamera.pickImages()...');
             await NativeCamera.pickImages().images().id('settings-gallery');
@@ -848,6 +853,7 @@ function ProfileView({
             id: string;
         }) => {
             console.log('PhotoTaken event (settings):', payload);
+            if (getGalleryTarget() !== 'profile') return;
             if (payload.path && payload.id?.startsWith('settings-')) {
                 loadNativeFilePreview(payload.path);
             }
@@ -864,6 +870,7 @@ function ProfileView({
             count: number;
         }) => {
             console.log('MediaSelected event (settings):', payload);
+            if (getGalleryTarget() !== 'profile') return;
             if (payload.success && payload.files && payload.files.length > 0) {
                 loadNativeFilePreview(payload.files[0].path);
             }

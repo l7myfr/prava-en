@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\GuestSessionController;
 use App\Http\Controllers\Auth\GuestUpgradeController;
 use App\Http\Controllers\Auth\WebEntryController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\CustomizationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\QuestionBrowserController;
@@ -122,6 +123,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('questions', [QuestionBrowserController::class, 'index'])->name('questions.index');
     Route::post('questions/{question}/answer', [QuestionBrowserController::class, 'answer'])->name('questions.answer');
     Route::post('questions/{question}/bookmark', [QuestionBrowserController::class, 'bookmark'])->name('questions.bookmark');
+
+    // Profile look: background, Home banner and banner text
+    Route::post('customization', [CustomizationController::class, 'update'])->name('customization.update');
+    Route::post('customization/image', [CustomizationController::class, 'image'])->name('customization.image');
 
     // Topics (practise and track progress per question category)
     Route::get('topics', [TopicController::class, 'index'])->name('topics.index');

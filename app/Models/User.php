@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -43,6 +44,7 @@ class User extends Authenticatable
         'default_license_type_id',
         'test_auto_advance',
         'is_guest',
+        'customization',
     ];
 
     /**
@@ -64,6 +66,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_image_url',
+        'customization_images',
     ];
 
     /**
@@ -80,6 +83,7 @@ class User extends Authenticatable
             'has_password' => 'boolean',
             'is_guest' => 'boolean',
             'question_filter_preferences' => 'array',
+            'customization' => 'array',
             'test_auto_advance' => 'boolean',
             'review_prompt_dismissed_at' => 'datetime',
             'review_prompt_last_shown_at' => 'datetime',
@@ -105,6 +109,21 @@ class User extends Authenticatable
         }
 
         return null;
+    }
+
+    /**
+     * URLs of the user's own background and banner photos, when set.
+     *
+     * @return array{background: ?string, banner: ?string}
+     */
+    public function getCustomizationImagesAttribute(): array
+    {
+        $url = fn (?string $path) => $path && Storage::disk('public')->exists($path) ? asset('storage/'.$path) : null;
+
+        return [
+            'background' => $url($this->customization['background_image'] ?? null),
+            'banner' => $url($this->customization['banner_image'] ?? null),
+        ];
     }
 
     public function questionProgress(): HasMany

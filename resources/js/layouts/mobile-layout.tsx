@@ -19,6 +19,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { SettingsSheet } from '@/components/settings-sheet';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-language';
+import { customizationStyle } from '@/lib/customization';
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 
@@ -54,6 +55,7 @@ export default function MobileLayout({
     const { t } = useLanguage();
 
     const { url, props } = usePage<SharedData>();
+    const backgroundStyle = customizationStyle(props.auth?.user, 'background');
     const isNative = props.platform === 'native';
     const activeTab = getActiveTab(url);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -125,6 +127,16 @@ export default function MobileLayout({
 
     return (
         <div className="fixed inset-0 flex flex-col overflow-hidden bg-background">
+            {/* The profile's own background, dimmed so pages stay readable */}
+            {backgroundStyle && (
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 -z-10"
+                    style={backgroundStyle}
+                >
+                    <div className="absolute inset-0 bg-background/70" />
+                </div>
+            )}
             {/* Top Bar - uses safe area inset for status bar */}
             {/* The bars stay full-bleed so they still reach the screen edges,
                 but their contents share the same centred column as the page
