@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppIconController;
 use App\Http\Controllers\Auth\GuestSessionController;
 use App\Http\Controllers\Auth\GuestUpgradeController;
 use App\Http\Controllers\Auth\WebEntryController;
@@ -48,6 +49,10 @@ Route::middleware('native.only')->group(function () {
     Route::post('backup/save', [BackupController::class, 'save'])->name('backup.save');
     Route::post('backup/settings', [BackupController::class, 'settings'])->name('backup.settings');
     Route::post('backup/pick', [BackupController::class, 'pick'])->name('backup.pick');
+    Route::post('backup/find', [BackupController::class, 'find'])->name('backup.find');
+    Route::get('app-icon', [AppIconController::class, 'show'])->name('app-icon.show');
+    Route::post('app-icon', [AppIconController::class, 'update'])->name('app-icon.update');
+    Route::post('app-icon/photo', [AppIconController::class, 'photo'])->name('app-icon.photo');
     Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
 });
 

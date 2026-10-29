@@ -13,12 +13,14 @@ type Status =
     | { kind: 'saving' }
     | { kind: 'saved'; location: string }
     | { kind: 'picking' }
+    | { kind: 'searching' }
+    | { kind: 'notFound' }
     | { kind: 'restoring' }
     | { kind: 'error'; message: string };
 
 interface NativeEventDetail {
     event: string;
-    payload: { uri?: string };
+    payload: { uri?: string; found?: boolean; reason?: string };
 }
 
 /**
@@ -28,12 +30,15 @@ interface NativeEventDetail {
  */
 export function BackupActions({
     showSave = true,
-    autoStartRestore = false,
+    autoFind = false,
     className,
 }: {
     showSave?: boolean;
-    /** Open the file picker on mount (first launch after a reinstall). */
-    autoStartRestore?: boolean;
+    /**
+     * Look for an earlier install's backup on mount and restore it (first
+     * launch after a reinstall); falls back to letting the user pick the file.
+     */
+    autoFind?: boolean;
     className?: string;
 }) {
     const { t } = useLanguage();
@@ -84,40 +89,48 @@ export function BackupActions({
         }
     };
 
-    const restore = async () => {
+    const restoreFrom = async (uri: string) => {
+        setStatus({ kind: 'restoring' });
+        try {
+            const { data } = await axios.post('/backup/restore', { uri });
+            if (data.success) {
+                window.location.href = '/';
+                return;
+            }
+            setStatus({ kind: 'error', message: data.message });
+        } catch (error) {
+            setStatus({
+                kind: 'error',
+                message:
+                    axios.isAxiosError(error) && error.response?.data?.message
+                        ? error.response.data.message
+                        : t('აღდგენა ვერ მოხერხდა'),
+            });
+        }
+    };
+
+    /** Answers from the device arrive as native events, not as responses. */
+    const listen = (
+        event: string,
+        handle: (detail: NativeEventDetail) => void,
+    ) => {
         if (listener.current) {
             document.removeEventListener('native-event', listener.current);
         }
-
-        // The picked file comes back as a native event, not as the response.
-        listener.current = async (e: Event) => {
+        listener.current = (e: Event) => {
             const detail = (e as CustomEvent<NativeEventDetail>).detail;
-            if (detail?.event !== 'file:chosen' || !detail.payload?.uri) return;
+            if (detail?.event !== event) return;
             document.removeEventListener('native-event', listener.current!);
             listener.current = null;
-
-            setStatus({ kind: 'restoring' });
-            try {
-                const { data } = await axios.post('/backup/restore', {
-                    uri: detail.payload.uri,
-                });
-                if (data.success) {
-                    window.location.href = '/';
-                    return;
-                }
-                setStatus({ kind: 'error', message: data.message });
-            } catch (error) {
-                setStatus({
-                    kind: 'error',
-                    message:
-                        axios.isAxiosError(error) &&
-                        error.response?.data?.message
-                            ? error.response.data.message
-                            : t('აღდგენა ვერ მოხერხდა'),
-                });
-            }
+            handle(detail);
         };
         document.addEventListener('native-event', listener.current);
+    };
+
+    const restore = async () => {
+        listen('file:chosen', (detail) => {
+            if (detail.payload?.uri) void restoreFrom(detail.payload.uri);
+        });
 
         setStatus({ kind: 'picking' });
         try {
@@ -127,21 +140,32 @@ export function BackupActions({
         }
     };
 
-    // Open the picker by itself once per launch, straight in Download/PravaEN
+    // First launch after a reinstall: look for the backup picture the earlier
+    // install left (asks for photo access) and restore it without the user
+    // having to know where the file is. Once per launch.
     useEffect(() => {
-        if (!autoStartRestore) return;
+        if (!autoFind) return;
         try {
-            if (sessionStorage.getItem('restore.autoOpened')) return;
-            sessionStorage.setItem('restore.autoOpened', '1');
+            if (sessionStorage.getItem('restore.searched')) return;
+            sessionStorage.setItem('restore.searched', '1');
         } catch {
-            // Storage blocked: open it anyway, just this once per mount.
+            // Storage blocked: search anyway, just this once per mount.
         }
-        void restore();
-        // restore only uses stable setters
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoStartRestore]);
 
-    const busy = ['saving', 'restoring'].includes(status.kind);
+        setStatus({ kind: 'searching' });
+        listen('backup:found', (detail) => {
+            if (detail.payload?.found && detail.payload.uri) {
+                void restoreFrom(detail.payload.uri);
+            } else {
+                setStatus({ kind: 'notFound' });
+            }
+        });
+        axios.post('/backup/find').catch(() => setStatus({ kind: 'notFound' }));
+        // listen/restoreFrom only use stable setters
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoFind]);
+
+    const busy = ['saving', 'restoring', 'searching'].includes(status.kind);
     const rowClass =
         'flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50 disabled:opacity-50';
 
@@ -192,7 +216,7 @@ export function BackupActions({
                 disabled={busy}
                 className={rowClass}
             >
-                {status.kind === 'restoring' ? (
+                {status.kind === 'restoring' || status.kind === 'searching' ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 ) : (
                     <RotateCcw className="h-5 w-5 text-primary" />
@@ -209,11 +233,19 @@ export function BackupActions({
                     >
                         {status.kind === 'error'
                             ? status.message
-                            : status.kind === 'picking'
-                              ? t('აირჩიე prava-backup.json ფაილი')
-                              : t(
-                                    'სარეზერვო ფაილიდან, ხელახალი ინსტალაციის შემდეგ',
-                                )}
+                            : status.kind === 'searching'
+                              ? t('ვეძებ შენს წინა პროგრესს…')
+                              : status.kind === 'restoring'
+                                ? t('ვაღდგენ…')
+                                : status.kind === 'notFound'
+                                  ? t(
+                                        'ავტომატურად ვერ ვიპოვე. შეეხე და აირჩიე prava-backup ფაილი.',
+                                    )
+                                  : status.kind === 'picking'
+                                    ? t('აირჩიე prava-backup.json ფაილი')
+                                    : t(
+                                          'სარეზერვო ფაილიდან, ხელახალი ინსტალაციის შემდეგ',
+                                      )}
                     </p>
                 </div>
             </button>

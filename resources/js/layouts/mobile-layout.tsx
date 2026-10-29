@@ -1,4 +1,4 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     ClipboardList,
@@ -19,6 +19,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { SettingsSheet } from '@/components/settings-sheet';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-language';
+import { goBack } from '@/lib/back-navigation';
 import { customizationStyle } from '@/lib/customization';
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
@@ -68,8 +69,8 @@ export default function MobileLayout({
     // Handle back button for "press again to exit" behavior
     const handleBackButton = useCallback(() => {
         if (!isOnDashboard) {
-            // Not on dashboard - navigate to dashboard
-            router.visit('/dashboard');
+            // Back to the page the user came from (Home when there is none)
+            goBack('/dashboard');
             return;
         }
 

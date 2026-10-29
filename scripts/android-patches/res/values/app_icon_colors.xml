@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="app_icon_wheel_background">#2563EB</color>
+    <color name="app_icon_road_background">#15803D</color>
+    <color name="app_icon_sign_background">#111827</color>
+    <color name="app_icon_car_background">#EA580C</color>
+</resources>

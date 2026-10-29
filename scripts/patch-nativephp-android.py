@@ -226,6 +226,89 @@ THEMES = [
 ]
 DEPRECATED_THEME_ITEMS = ('name="android:statusBarColor"', 'name="android:navigationBarColor"')
 
+# Switchable app icon: the generated icon resources (scripts/build-app-icons.py)
+# and the bridge functions, plus one launcher activity-alias per icon.
+FILE_COPIES.append({
+    "name": "AppIconFunctions.kt: switchable launcher icon",
+    "src": SOURCES / "AppIconFunctions.kt",
+    "dst": JAVA / "bridge/functions/AppIconFunctions.kt",
+})
+for _res in sorted((SOURCES / "res").rglob("*.xml")):
+    FILE_COPIES.append({
+        "name": f"res/{_res.relative_to(SOURCES / 'res').as_posix()}: app icon resource",
+        "src": _res,
+        "dst": ANDROID / "app/src/main/res" / _res.relative_to(SOURCES / "res"),
+    })
+
+_LAUNCHER_FILTER = (
+    "            <intent-filter>\n"
+    '                <action android:name="android.intent.action.MAIN" />\n'
+    '                <category android:name="android.intent.category.LAUNCHER" />\n'
+    "            </intent-filter>\n"
+)
+
+
+def _icon_alias(name: str, icon: str, enabled: bool) -> str:
+    return (
+        "        <activity-alias\n"
+        f'            android:name="com.nativephp.mobile.AppIcon{name}"\n'
+        '            android:targetActivity="com.nativephp.mobile.ui.MainActivity"\n'
+        '            android:exported="true"\n'
+        f'            android:enabled="{"true" if enabled else "false"}"\n'
+        f'            android:icon="{icon}"\n'
+        f'            android:roundIcon="{icon}">\n'
+        + _LAUNCHER_FILTER
+        + "        </activity-alias>\n"
+    )
+
+
+PATCHES += [
+    {
+        "name": "AndroidManifest: launcher entry per app icon",
+        "path": ANDROID / "app/src/main/AndroidManifest.xml",
+        "old": _LAUNCHER_FILTER + "        </activity>\n",
+        "new": "        </activity>\n"
+               + _icon_alias("Default", "@mipmap/ic_launcher", True)
+               + "".join(_icon_alias(n.capitalize(), f"@mipmap/app_icon_{n}", False)
+                         for n in ("wheel", "road", "sign", "car")),
+        "applied": "com.nativephp.mobile.AppIconDefault",
+        "why": "The launcher shows whichever alias is enabled; AppIcon.Set switches it.",
+    },
+    {
+        "name": "AndroidManifest: photo access to find the backup after a reinstall",
+        "path": ANDROID / "app/src/main/AndroidManifest.xml",
+        "old": '    <uses-permission android:name="android.permission.INTERNET" />\n',
+        "new": '    <uses-permission android:name="android.permission.INTERNET" />\n'
+               '    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\n'
+               '    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n',
+        "applied": "android.permission.READ_MEDIA_IMAGES",
+        "why": "A reinstalled app can only read the backup image left by its earlier "
+               "install with photo access.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: import AppIconFunctions",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",
+        "new": "import com.nativephp.mobile.bridge.functions.AppIconFunctions\n"
+               "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",
+        "applied": "import com.nativephp.mobile.bridge.functions.AppIconFunctions",
+        "why": "Pairs with the AppIcon.* registrations below.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: register AppIcon.* and Backup.Find",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": '    registry.register("Backup.Read", BackupFunctions.Read(context))\n',
+        "new": '    registry.register("Backup.Read", BackupFunctions.Read(context))\n'
+               '    registry.register("Backup.Find", BackupFunctions.Find(activity))\n'
+               '    registry.register("AppIcon.Set", AppIconFunctions.Set(context))\n'
+               '    registry.register("AppIcon.Get", AppIconFunctions.Get(context))\n'
+               '    registry.register("AppIcon.PinPhoto", AppIconFunctions.PinPhoto(context))\n',
+        "applied": 'registry.register("AppIcon.Set"',
+        "why": "Without these the bridge answers METHOD_NOT_FOUND for the icon picker "
+               "and the automatic backup search.",
+    },
+]
+
 
 def copy_added_files() -> int:
     failures = 0

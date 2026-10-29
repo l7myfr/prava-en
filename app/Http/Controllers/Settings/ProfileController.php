@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Support\NativeMediaFile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,9 +91,23 @@ class ProfileController extends Controller
     }
 
     /**
+     * Change the licence category the profile studies for.
+     */
+    public function license(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'default_license_type_id' => ['nullable', 'integer', 'exists:license_types,id'],
+        ]);
+
+        $request->user()->update($validated);
+
+        return response()->json(['default_license_type_id' => $request->user()->default_license_type_id]);
+    }
+
+    /**
      * Delete the user's account.
      */
-    public function destroy(ProfileDeleteRequest $request): RedirectResponse
+    public function destroy(ProfileDeleteRequest $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
@@ -110,6 +125,10 @@ class ProfileController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect('/');
     }

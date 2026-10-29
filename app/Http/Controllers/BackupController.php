@@ -26,6 +26,15 @@ class BackupController extends Controller
         return response()->json(['auto' => ProgressBackup::autoEnabled()]);
     }
 
+    /**
+     * Search for a backup left by an earlier install; the answer arrives in
+     * the page as a "backup:found" native event.
+     */
+    public function find(): JsonResponse
+    {
+        return response()->json(['success' => ProgressBackup::find()]);
+    }
+
     public function pick(): JsonResponse
     {
         return response()->json(['success' => ProgressBackup::pick()]);

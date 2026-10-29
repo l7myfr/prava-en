@@ -324,4 +324,17 @@ export const uiEnglish: Record<string, string> = {
         'Saves to Download/PravaEN by itself while you study',
     'დაბრუნდი? აღადგინე შენი პროგრესი': 'Back again? Restore your progress',
     'თავიდან დაწყება, აღდგენის გარეშე': 'Start fresh without restoring',
+    'ვეძებ შენს წინა პროგრესს…': 'Looking for your previous progress…',
+    'ვაღდგენ…': 'Restoring…',
+    'ავტომატურად ვერ ვიპოვე. შეეხე და აირჩიე prava-backup ფაილი.':
+        "Couldn't find it automatically. Tap to pick the prava-backup file.",
+    'აპის ხატულა': 'App icon',
+    'ფოტო მთავარ ეკრანზე ცალკე მალსახმობად დაემატება.':
+        'A photo is added to your home screen as a separate shortcut.',
+    'დაადასტურე „მთავარ ეკრანზე დამატება“': 'Confirm "Add to home screen"',
+    'შენი ტელეფონი ამას არ უჭერს მხარს': "Your phone doesn't support this",
+    'ხატულა ვერ შეიცვალა': "Couldn't change the icon",
+    'ხატულა შეიცვალა. შეიძლება რამდენიმე წამი დასჭირდეს.':
+        'Icon changed. It can take a few seconds to show.',
+    'პროფილი ვერ წაიშალა': "Couldn't delete the profile",
 };

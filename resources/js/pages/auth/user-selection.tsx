@@ -913,7 +913,7 @@ export default function UserSelection({ users }: Props) {
                             )}
                             <BackupActions
                                 showSave={false}
-                                autoStartRestore={isFreshInstall}
+                                autoFind={isFreshInstall}
                             />
                             {isFreshInstall && (
                                 <button

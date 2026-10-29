@@ -37,6 +37,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
+import { goBack } from '@/lib/back-navigation';
 import { cn } from '@/lib/utils';
 
 interface Answer {
@@ -477,7 +478,8 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                 remaining_time: remainingTime,
             });
 
-            router.visit('/test');
+            // Back to where the test was started from (Topics, Test, Home)
+            goBack('/test', { leavingTest: true });
         } catch (error) {
             console.error('Failed to pause test:', error);
             isPausedRef.current = false;

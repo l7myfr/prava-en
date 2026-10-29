@@ -65,7 +65,7 @@ export function CustomizationSettings() {
             files?: { path: string }[];
         }) => {
             const slot = getGalleryTarget();
-            if (slot === 'profile') return;
+            if (slot !== 'background' && slot !== 'banner') return;
             setGalleryTarget('profile');
             const path = payload.success ? payload.files?.[0]?.path : null;
             if (!path) return;

@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { config, createInertiaApp } from '@inertiajs/react';
+import { config, createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { initializeCustomization } from './hooks/use-customization';
 import { initializeLanguage } from './hooks/use-language';
+import { recordVisit } from './lib/back-navigation';
 
 // Cache prefetched pages for 5 minutes to improve navigation speed
 config.set('prefetch.cacheFor', '5m');
@@ -58,3 +59,6 @@ createInertiaApp({
 initializeTheme();
 initializeLanguage();
 initializeCustomization();
+
+// Remember the pages visited so back returns to where the user came from
+router.on('navigate', (event) => recordVisit(event.detail.page.url));

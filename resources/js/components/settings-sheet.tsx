@@ -28,6 +28,7 @@ import {
     On,
     SecureStorage,
 } from '#nativephp';
+import { AppIconPicker } from '@/components/app-icon-picker';
 import { BackupActions } from '@/components/backup-actions';
 import { CustomizationSettings } from '@/components/customization-settings';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
@@ -306,31 +307,33 @@ function LicenseTypeSelector({
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    // Shown at once; the device web view does not reliably follow the
+    // redirect an Inertia form post answers with, so save over JSON instead.
+    const [current, setCurrent] = useState(selectedId ?? null);
+    void userName;
 
-    const handleSelect = (id: number) => {
-        if (id === selectedId) return;
+    useEffect(() => setCurrent(selectedId ?? null), [selectedId]);
 
+    const handleSelect = async (id: number) => {
+        if (id === current) return;
+
+        const previous = current;
+        setCurrent(id);
         setSaving(true);
         setSaved(false);
 
-        router.post(
-            '/settings/profile',
-            {
-                name: userName,
+        try {
+            await axios.post('/settings/license', {
                 default_license_type_id: id,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setSaving(false);
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 2000);
-                },
-                onError: () => {
-                    setSaving(false);
-                },
-            },
-        );
+            });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+            router.reload({ only: ['auth'] });
+        } catch {
+            setCurrent(previous);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -352,7 +355,7 @@ function LicenseTypeSelector({
             </div>
             <div className="grid grid-cols-4 gap-2">
                 {licenseTypes.map((lt) => {
-                    const isSelected = lt.id === selectedId;
+                    const isSelected = lt.id === current;
                     const childCodes =
                         lt.children && lt.children.length > 0
                             ? lt.children.map((c) => c.code).join(', ')
@@ -502,103 +505,113 @@ function MainView({
                         <TextSizePicker />
                     </div>
                     <CustomizationSettings />
+                    {platform === 'native' && (
+                        <div>
+                            <h4 className="mb-3 text-sm font-medium text-muted-foreground">
+                                {t('აპის ხატულა')}
+                            </h4>
+                            <AppIconPicker />
+                        </div>
+                    )}
                 </div>
-            </div>
 
-            {/* Guests keep their history only until the session goes stale,
+                {/* Guests keep their history only until the session goes stale,
                 so give them a standing way out of that. */}
-            {user.is_guest && (
-                <Link
-                    href="/guest/upgrade"
-                    className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
-                >
-                    <ShieldCheck className="h-5 w-5 text-primary" />
-                    <div className="min-w-0 flex-1 text-left">
-                        <span>{t('შედეგების შენახვა')}</span>
-                        <p className="text-xs text-muted-foreground">
-                            {t('შექმენი ანგარიში')}
-                        </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Link>
-            )}
+                {user.is_guest && (
+                    <Link
+                        href="/guest/upgrade"
+                        className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
+                    >
+                        <ShieldCheck className="h-5 w-5 text-primary" />
+                        <div className="min-w-0 flex-1 text-left">
+                            <span>{t('შედეგების შენახვა')}</span>
+                            <p className="text-xs text-muted-foreground">
+                                {t('შექმენი ანგარიში')}
+                            </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                )}
 
-            {platform === 'native' && <BackupActions className="border-t" />}
+                {platform === 'native' && (
+                    <BackupActions className="border-t" />
+                )}
 
-            {/* Rate the app. Always available on the device, unlike the
+                {/* Rate the app. Always available on the device, unlike the
                 one-shot prompt on the results screen, so anyone who dismissed
                 that can still rate. There is no store listing on the web. */}
-            {platform === 'native' && (
+                {platform === 'native' && (
+                    <button
+                        type="button"
+                        onClick={handleRateApp}
+                        className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
+                    >
+                        <Star className="h-5 w-5 text-amber-500" />
+                        <div className="min-w-0 flex-1 text-left">
+                            <span>{t('შეფასება')}</span>
+                            <p className="text-xs text-muted-foreground">
+                                Google Play
+                            </p>
+                        </div>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                )}
+
+                {/* GitHub contribute link */}
                 <button
                     type="button"
-                    onClick={handleRateApp}
+                    onClick={() =>
+                        openExternal('https://github.com/trongio/Prava-App')
+                    }
                     className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
                 >
-                    <Star className="h-5 w-5 text-amber-500" />
+                    <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
                     <div className="min-w-0 flex-1 text-left">
-                        <span>{t('შეფასება')}</span>
+                        <span>trongio</span>
                         <p className="text-xs text-muted-foreground">
-                            Google Play
+                            {t('კონტრიბუცია')}
                         </p>
                     </div>
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </button>
-            )}
 
-            {/* GitHub contribute link */}
-            <button
-                type="button"
-                onClick={() =>
-                    openExternal('https://github.com/trongio/Prava-App')
-                }
-                className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
-            >
-                <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
+                {/* Privacy Policy link */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        openExternal(
+                            'https://raw.githubusercontent.com/trongio/Prava-App/refs/heads/main/PRIVACY_POLICY.md',
+                        )
+                    }
+                    className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
                 >
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-                <div className="min-w-0 flex-1 text-left">
-                    <span>trongio</span>
-                    <p className="text-xs text-muted-foreground">
-                        {t('კონტრიბუცია')}
-                    </p>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            </button>
+                    <ShieldCheck className="h-5 w-5" />
+                    <div className="min-w-0 flex-1 text-left">
+                        <span>{t('კონფიდენციალურობა')}</span>
+                        <p className="text-xs text-muted-foreground">
+                            {t('პოლიტიკა')}
+                        </p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                </button>
 
-            {/* Privacy Policy link */}
-            <button
-                type="button"
-                onClick={() =>
-                    openExternal(
-                        'https://raw.githubusercontent.com/trongio/Prava-App/refs/heads/main/PRIVACY_POLICY.md',
-                    )
-                }
-                className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50"
-            >
-                <ShieldCheck className="h-5 w-5" />
-                <div className="min-w-0 flex-1 text-left">
-                    <span>{t('კონფიდენციალურობა')}</span>
-                    <p className="text-xs text-muted-foreground">
-                        {t('პოლიტიკა')}
-                    </p>
+                {/* Logout button */}
+                <div className="border-t p-4">
+                    <Button
+                        variant="outline"
+                        className="w-full justify-start gap-3"
+                        onClick={handleLogout}
+                    >
+                        <LogOut className="h-5 w-5" />
+                        {t('გასვლა')}
+                    </Button>
                 </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            </button>
-
-            {/* Logout button */}
-            <div className="border-t p-4">
-                <Button
-                    variant="outline"
-                    className="w-full justify-start gap-3"
-                    onClick={handleLogout}
-                >
-                    <LogOut className="h-5 w-5" />
-                    {t('გასვლა')}
-                </Button>
             </div>
         </div>
     );
@@ -955,22 +968,25 @@ function ProfileView({
         }
     };
 
-    const handleFinalDelete = () => {
-        const hasPassword = user.has_password || user.password !== null;
-        if (hasPassword) {
-            deleteForm.delete('/settings/profile', {
-                onSuccess: () => {
-                    setShowFinalDialog(false);
-                    onClose();
-                },
+    // POST with a JSON body: the device web view drops the body of a DELETE,
+    // so the password never arrived and the profile was never deleted.
+    const handleFinalDelete = async () => {
+        deleteForm.clearErrors();
+        try {
+            await axios.post('/settings/profile/delete', {
+                password: deleteForm.data.password,
             });
-        } else {
-            router.delete('/settings/profile', {
-                onSuccess: () => {
-                    setShowFinalDialog(false);
-                    onClose();
-                },
-            });
+            setShowFinalDialog(false);
+            onClose();
+            window.location.href = '/';
+        } catch (error) {
+            const message =
+                axios.isAxiosError(error) &&
+                error.response?.data?.errors?.password?.[0];
+            deleteForm.setError(
+                'password',
+                message || t('პროფილი ვერ წაიშალა'),
+            );
         }
     };
 

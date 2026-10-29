@@ -3,7 +3,7 @@
  * carry no reliable owner, so every listener checks this before acting on a
  * pick that wasn't its own (a background photo must not become the avatar).
  */
-export type GalleryTarget = 'profile' | 'background' | 'banner';
+export type GalleryTarget = 'profile' | 'background' | 'banner' | 'icon';
 
 let target: GalleryTarget = 'profile';
 

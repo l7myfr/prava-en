@@ -184,6 +184,21 @@ class ProgressBackup
         return (bool) ($result['success'] ?? false);
     }
 
+    /**
+     * Look for the backup picture an earlier install left behind (asks for
+     * photo access first); the result comes back as a "backup:found" event.
+     */
+    public static function find(): bool
+    {
+        if (! self::available()) {
+            return false;
+        }
+
+        $result = json_decode((string) nativephp_call('Backup.Find', '{}'), true);
+
+        return (bool) ($result['success'] ?? false);
+    }
+
     public static function read(string $uri): string
     {
         $result = json_decode((string) nativephp_call('Backup.Read', json_encode(['uri' => $uri])), true);

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
+import { goBack } from '@/lib/back-navigation';
 import {
     buildAnswerStates,
     getCorrectAnswers,
@@ -107,7 +108,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
     // Handle Android back button
     useEffect(() => {
         const handlePopState = () => {
-            router.visit('/test');
+            goBack('/test', { leavingTest: true });
         };
 
         window.history.pushState(null, '', window.location.href);
