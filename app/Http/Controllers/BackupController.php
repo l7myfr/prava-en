@@ -18,6 +18,14 @@ class BackupController extends Controller
         return response()->json(ProgressBackup::save() + ['saved_at' => ProgressBackup::lastSavedAt()]);
     }
 
+    public function settings(Request $request): JsonResponse
+    {
+        $request->validate(['auto' => 'required|boolean']);
+        ProgressBackup::setAutoEnabled($request->boolean('auto'));
+
+        return response()->json(['auto' => ProgressBackup::autoEnabled()]);
+    }
+
     public function pick(): JsonResponse
     {
         return response()->json(['success' => ProgressBackup::pick()]);

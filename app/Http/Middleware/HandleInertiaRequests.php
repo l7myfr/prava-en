@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\LicenseType;
 use App\Support\Platform;
+use App\Support\ProgressBackup;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,6 +49,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'licenseTypes' => fn () => LicenseType::parents()->with('children')->get(),
+            // Device only: the progress backup in Downloads (Settings → backup)
+            'backup' => fn () => Platform::current() === 'native' ? [
+                'auto' => ProgressBackup::autoEnabled(),
+                'last_saved_at' => ProgressBackup::lastSavedAt(),
+            ] : null,
         ];
     }
 }

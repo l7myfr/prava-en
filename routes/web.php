@@ -46,6 +46,7 @@ if (Platform::isWeb()) {
 // used on a fresh install before any profile exists.
 Route::middleware('native.only')->group(function () {
     Route::post('backup/save', [BackupController::class, 'save'])->name('backup.save');
+    Route::post('backup/settings', [BackupController::class, 'settings'])->name('backup.settings');
     Route::post('backup/pick', [BackupController::class, 'pick'])->name('backup.pick');
     Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
 });

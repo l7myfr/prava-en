@@ -319,4 +319,9 @@ export const uiEnglish: Record<string, string> = {
     გზა: 'Road',
     ქალაქი: 'City',
     მთები: 'Mountains',
+    'ავტომატური სარეზერვო ასლი': 'Automatic backup',
+    'სწავლისას თავისით ინახება Download/PravaEN-ში':
+        'Saves to Download/PravaEN by itself while you study',
+    'დაბრუნდი? აღადგინე შენი პროგრესი': 'Back again? Restore your progress',
+    'თავიდან დაწყება, აღდგენის გარეშე': 'Start fresh without restoring',
 };

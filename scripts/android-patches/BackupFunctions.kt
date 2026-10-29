@@ -2,15 +2,20 @@ package com.nativephp.mobile.bridge.functions
 
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import com.nativephp.mobile.bridge.BridgeError
 import com.nativephp.mobile.bridge.BridgeFunction
-import com.nativephp.mobile.utils.NativeActionCoordinator
+import com.nativephp.mobile.utils.WebViewProvider
+import org.json.JSONObject
 
 /**
  * Progress backup that outlives the app.
@@ -77,16 +82,48 @@ object BackupFunctions {
     }
 
     /**
-     * Open the system file picker. The chosen file arrives in the page as a
-     * "native-event" with event "file:chosen" and payload { uri }.
+     * Open the system file picker, starting in Download/PravaEN so the backup
+     * is one tap away. The chosen file arrives in the page as a "native-event"
+     * with event "file:chosen" and payload { uri }.
      */
     class Pick(private val activity: FragmentActivity) : BridgeFunction {
         override fun execute(parameters: Map<String, Any>): Map<String, Any> {
             activity.runOnUiThread {
-                NativeActionCoordinator.install(activity).launchFilePicker("*/*")
+                // registry.register (no lifecycle owner) may be called at any
+                // time, unlike registerForActivityResult; unregister after use.
+                var launcher: ActivityResultLauncher<Array<String>>? = null
+                launcher = activity.activityResultRegistry.register(
+                    "prava-backup-pick-${System.nanoTime()}",
+                    StartInFolder(),
+                ) { uri ->
+                    launcher?.unregister()
+                    uri ?: return@register
+                    val js = """
+                        document.dispatchEvent(new CustomEvent("native-event", {
+                            detail: { event: "file:chosen", payload: { uri: ${JSONObject.quote(uri.toString())} } }
+                        }));
+                    """.trimIndent()
+                    (activity as? WebViewProvider)?.getWebViewOrNull()?.evaluateJavascript(js, null)
+                }
+                launcher.launch(arrayOf("*/*"))
             }
             return mapOf("success" to true)
         }
+    }
+
+    private class StartInFolder : ActivityResultContracts.OpenDocument() {
+        override fun createIntent(context: Context, input: Array<String>): Intent =
+            super.createIntent(context, input).apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    putExtra(
+                        DocumentsContract.EXTRA_INITIAL_URI,
+                        DocumentsContract.buildDocumentUri(
+                            "com.android.externalstorage.documents",
+                            "primary:${Environment.DIRECTORY_DOWNLOADS}/$FOLDER",
+                        ),
+                    )
+                }
+            }
     }
 
     /**

@@ -621,7 +621,7 @@ class TestController extends Controller
             'remaining_time_seconds' => $remainingTime,
         ]);
 
-        ProgressBackup::save();
+        ProgressBackup::autoSave();
 
         if ($request->wantsJson()) {
             return response()->json([

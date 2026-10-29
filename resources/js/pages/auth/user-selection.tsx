@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/use-language';
+import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -93,6 +94,17 @@ export default function UserSelection({ users }: Props) {
     const { t } = useLanguage();
 
     const { licenseTypes, platform } = usePage<SharedData>().props;
+    // A brand-new install (no profiles yet) may be a reinstall: offer the
+    // backup straight away unless the user chose to start fresh.
+    const [restoreSkipped, setRestoreSkipped] = useState(() => {
+        try {
+            return localStorage.getItem('restore.skipped') === '1';
+        } catch {
+            return false;
+        }
+    });
+    const isFreshInstall =
+        platform === 'native' && users.length === 0 && !restoreSkipped;
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
@@ -888,8 +900,40 @@ export default function UserSelection({ users }: Props) {
                     {/* After a reinstall the database is empty, but the
                         backup in Downloads survives uninstalling. */}
                     {platform === 'native' && (
-                        <Card className="mt-3 overflow-hidden py-0">
-                            <BackupActions showSave={false} />
+                        <Card
+                            className={cn(
+                                'mt-3 overflow-hidden py-0',
+                                isFreshInstall && 'border-primary',
+                            )}
+                        >
+                            {isFreshInstall && (
+                                <p className="px-4 pt-3 text-sm font-semibold">
+                                    {t('დაბრუნდი? აღადგინე შენი პროგრესი')}
+                                </p>
+                            )}
+                            <BackupActions
+                                showSave={false}
+                                autoStartRestore={isFreshInstall}
+                            />
+                            {isFreshInstall && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        try {
+                                            localStorage.setItem(
+                                                'restore.skipped',
+                                                '1',
+                                            );
+                                        } catch {
+                                            // Storage blocked: just hide it now.
+                                        }
+                                        setRestoreSkipped(true);
+                                    }}
+                                    className="w-full border-t px-4 py-3 text-sm text-muted-foreground hover:bg-muted/50"
+                                >
+                                    {t('თავიდან დაწყება, აღდგენის გარეშე')}
+                                </button>
+                            )}
                         </Card>
                     )}
                 </div>

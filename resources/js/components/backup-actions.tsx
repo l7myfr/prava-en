@@ -1,9 +1,12 @@
+import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { DatabaseBackup, Loader2, RotateCcw } from 'lucide-react';
+import { CloudCog, DatabaseBackup, Loader2, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
+import { type SharedData } from '@/types';
 
 type Status =
     | { kind: 'idle' }
@@ -25,12 +28,30 @@ interface NativeEventDetail {
  */
 export function BackupActions({
     showSave = true,
+    autoStartRestore = false,
     className,
 }: {
     showSave?: boolean;
+    /** Open the file picker on mount (first launch after a reinstall). */
+    autoStartRestore?: boolean;
     className?: string;
 }) {
     const { t } = useLanguage();
+    const backup = usePage<SharedData>().props.backup as
+        | { auto: boolean; last_saved_at: string | null }
+        | null
+        | undefined;
+    const [autoBackup, setAutoBackup] = useState(backup?.auto ?? true);
+
+    const toggleAutoBackup = async (enabled: boolean) => {
+        setAutoBackup(enabled);
+        try {
+            await axios.post('/backup/settings', { auto: enabled });
+            router.reload({ only: ['backup'] });
+        } catch {
+            setAutoBackup(!enabled);
+        }
+    };
     const [status, setStatus] = useState<Status>({ kind: 'idle' });
     const listener = useRef<((e: Event) => void) | null>(null);
 
@@ -106,12 +127,41 @@ export function BackupActions({
         }
     };
 
+    // Open the picker by itself once per launch, straight in Download/PravaEN
+    useEffect(() => {
+        if (!autoStartRestore) return;
+        try {
+            if (sessionStorage.getItem('restore.autoOpened')) return;
+            sessionStorage.setItem('restore.autoOpened', '1');
+        } catch {
+            // Storage blocked: open it anyway, just this once per mount.
+        }
+        void restore();
+        // restore only uses stable setters
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoStartRestore]);
+
     const busy = ['saving', 'restoring'].includes(status.kind);
     const rowClass =
         'flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50 disabled:opacity-50';
 
     return (
         <div className={cn('divide-y', className)}>
+            {showSave && (
+                <label className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium">
+                    <CloudCog className="h-5 w-5 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                        <span>{t('ავტომატური სარეზერვო ასლი')}</span>
+                        <p className="text-xs text-muted-foreground">
+                            {t('სწავლისას თავისით ინახება Download/PravaEN-ში')}
+                        </p>
+                    </div>
+                    <Switch
+                        checked={autoBackup}
+                        onCheckedChange={toggleAutoBackup}
+                    />
+                </label>
+            )}
             {showSave && (
                 <button
                     type="button"

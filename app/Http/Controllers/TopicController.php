@@ -96,7 +96,7 @@ class TopicController extends Controller
                 'last_answered_at' => null,
             ]);
 
-        ProgressBackup::save();
+        ProgressBackup::autoSave();
 
         return back();
     }

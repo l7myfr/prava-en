@@ -32,9 +32,34 @@ class ProgressBackup
 
     private const DIRTY_KEY = 'progress_backup.dirty';
 
+    private const AUTO_OFF_KEY = 'progress_backup.auto_off';
+
     public static function available(): bool
     {
         return (bool) env('NATIVEPHP_RUNNING') && function_exists('nativephp_call');
+    }
+
+    /**
+     * Whether progress is backed up on its own while studying (Settings).
+     */
+    public static function autoEnabled(): bool
+    {
+        return ! Cache::get(self::AUTO_OFF_KEY, false);
+    }
+
+    public static function setAutoEnabled(bool $enabled): void
+    {
+        $enabled ? Cache::forget(self::AUTO_OFF_KEY) : Cache::forever(self::AUTO_OFF_KEY, true);
+    }
+
+    /**
+     * Save now, unless automatic backups are switched off.
+     */
+    public static function autoSave(): void
+    {
+        if (self::autoEnabled()) {
+            self::save();
+        }
     }
 
     /**
@@ -117,7 +142,7 @@ class ProgressBackup
      */
     public static function saveSoon(): void
     {
-        if (! self::available()) {
+        if (! self::available() || ! self::autoEnabled()) {
             return;
         }
 
@@ -132,7 +157,7 @@ class ProgressBackup
 
     public static function saveIfDirty(): void
     {
-        if (self::available() && Cache::get(self::DIRTY_KEY)) {
+        if (self::available() && self::autoEnabled() && Cache::get(self::DIRTY_KEY)) {
             self::save();
         }
     }

@@ -45,3 +45,13 @@ test('the backup routes only exist on the device build', function () {
 
     $this->postJson('/backup/save')->assertNotFound();
 });
+
+test('automatic backups can be switched off and back on', function () {
+    expect(ProgressBackup::autoEnabled())->toBeTrue();
+
+    ProgressBackup::setAutoEnabled(false);
+    expect(ProgressBackup::autoEnabled())->toBeFalse();
+
+    ProgressBackup::setAutoEnabled(true);
+    expect(ProgressBackup::autoEnabled())->toBeTrue();
+});
