@@ -32,6 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/hooks/use-language';
 import MobileLayout from '@/layouts/mobile-layout';
 import { cn } from '@/lib/utils';
 
@@ -92,12 +93,15 @@ const formatTime = (seconds: number) => {
 
 const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ka-GE', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    return date.toLocaleDateString(
+        document.documentElement.lang === 'en' ? 'en-GB' : 'ka-GE',
+        {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+        },
+    );
 };
 
 const getTestTypeName = (type: string) => {
@@ -111,6 +115,8 @@ const getTestTypeName = (type: string) => {
 };
 
 export default function HistoryIndex({ testResults, stats, filters }: Props) {
+    const { t } = useLanguage();
+
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [testToDelete, setTestToDelete] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -163,7 +169,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
 
     return (
         <MobileLayout>
-            <Head title="ისტორია" />
+            <Head title={t('ისტორია')} />
 
             <div className="flex flex-col gap-4 p-4">
                 {/* Pass Rate - Hero Card */}
@@ -214,7 +220,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                             {/* Stats */}
                             <div className="flex-1 space-y-2">
                                 <div className="text-sm font-medium text-muted-foreground">
-                                    წარმატების მაჩვენებელი
+                                    {t('წარმატების მაჩვენებელი')}
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="text-center">
@@ -225,7 +231,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                             </span>
                                         </div>
                                         <div className="text-[10px] text-muted-foreground">
-                                            სულ
+                                            {t('სულ')}
                                         </div>
                                     </div>
                                     <div className="text-center">
@@ -236,7 +242,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                             </span>
                                         </div>
                                         <div className="text-[10px] text-muted-foreground">
-                                            ჩაბარებული
+                                            {t('ჩაბარებული')}
                                         </div>
                                     </div>
                                     <div className="text-center">
@@ -247,7 +253,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                             </span>
                                         </div>
                                         <div className="text-[10px] text-muted-foreground">
-                                            ჩავარდნილი
+                                            {t('ჩავარდნილი')}
                                         </div>
                                     </div>
                                 </div>
@@ -266,12 +272,16 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                         }
                     >
                         <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="სტატუსი" />
+                            <SelectValue placeholder={t('სტატუსი')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">ყველა</SelectItem>
-                            <SelectItem value="passed">ჩაბარებული</SelectItem>
-                            <SelectItem value="failed">ჩავარდნილი</SelectItem>
+                            <SelectItem value="all">{t('ყველა')}</SelectItem>
+                            <SelectItem value="passed">
+                                {t('ჩაბარებული')}
+                            </SelectItem>
+                            <SelectItem value="failed">
+                                {t('ჩავარდნილი')}
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                     <Select
@@ -281,13 +291,17 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                         }
                     >
                         <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="ტიპი" />
+                            <SelectValue placeholder={t('ტიპი')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">ყველა</SelectItem>
-                            <SelectItem value="thematic">თემატური</SelectItem>
-                            <SelectItem value="bookmarked">შენახული</SelectItem>
-                            <SelectItem value="quick">სწრაფი</SelectItem>
+                            <SelectItem value="all">{t('ყველა')}</SelectItem>
+                            <SelectItem value="thematic">
+                                {t('თემატური')}
+                            </SelectItem>
+                            <SelectItem value="bookmarked">
+                                {t('შენახული')}
+                            </SelectItem>
+                            <SelectItem value="quick">{t('სწრაფი')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -349,8 +363,10 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                                         variant="outline"
                                                         className="ml-auto text-xs"
                                                     >
-                                                        {getTestTypeName(
-                                                            test.test_type,
+                                                        {t(
+                                                            getTestTypeName(
+                                                                test.test_type,
+                                                            ),
                                                         )}
                                                     </Badge>
                                                 </div>
@@ -406,17 +422,21 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                             <History className="h-16 w-16 text-muted-foreground" />
                             <div className="text-center">
                                 <h2 className="text-lg font-semibold">
-                                    ისტორია ცარიელია
+                                    {t('ისტორია ცარიელია')}
                                 </h2>
                                 <p className="text-sm text-muted-foreground">
                                     {filters.status || filters.test_type
-                                        ? 'არჩეული ფილტრებით ტესტები ვერ მოიძებნა'
-                                        : 'თქვენ ჯერ არ გაგივლიათ ტესტი'}
+                                        ? t(
+                                              'არჩეული ფილტრებით ტესტები ვერ მოიძებნა',
+                                          )
+                                        : t('თქვენ ჯერ არ გაგივლიათ ტესტი')}
                                 </p>
                             </div>
                             {!filters.status && !filters.test_type && (
                                 <Button asChild>
-                                    <Link href="/test">ტესტის დაწყება</Link>
+                                    <Link href="/test">
+                                        {t('ტესტის დაწყება')}
+                                    </Link>
                                 </Button>
                             )}
                         </CardContent>
@@ -439,7 +459,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                 )
                             }
                         >
-                            წინა
+                            {t('წინა')}
                         </Button>
                         <span className="text-sm text-muted-foreground">
                             {testResults.current_page} / {testResults.last_page}
@@ -457,7 +477,7 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                                 )
                             }
                         >
-                            შემდეგი
+                            {t('შემდეგი')}
                         </Button>
                     </div>
                 )}
@@ -467,10 +487,11 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>ტესტის წაშლა</DialogTitle>
+                        <DialogTitle>{t('ტესტის წაშლა')}</DialogTitle>
                         <DialogDescription>
-                            დარწმუნებული ხართ, რომ გსურთ ამ ტესტის წაშლა? ეს
-                            მოქმედება შეუქცევადია.
+                            {t(
+                                'დარწმუნებული ხართ, რომ გსურთ ამ ტესტის წაშლა? ეს მოქმედება შეუქცევადია.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -479,14 +500,14 @@ export default function HistoryIndex({ testResults, stats, filters }: Props) {
                             onClick={() => setDeleteDialogOpen(false)}
                             disabled={isDeleting}
                         >
-                            გაუქმება
+                            {t('გაუქმება')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={isDeleting}
                         >
-                            {isDeleting ? 'იშლება...' : 'წაშლა'}
+                            {isDeleting ? t('იშლება...') : t('წაშლა')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

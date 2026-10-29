@@ -1,6 +1,7 @@
 import { Check, Clock, X } from 'lucide-react';
 
 import { getLicenseTypeIcon } from '@/components/license-type-select';
+import { useLanguage } from '@/hooks/use-language';
 import {
     formatTime,
     getTestTypeName,
@@ -34,6 +35,8 @@ export function TestResultBanner({
     allowedWrong,
     withTopPadding = false,
 }: TestResultBannerProps) {
+    const { t } = useLanguage();
+
     const isOvertime = timeTakenSeconds < 0;
     const showAnsweredCount =
         answeredCount !== undefined && answeredCount < totalQuestions;
@@ -79,22 +82,23 @@ export function TestResultBanner({
                         : 'text-red-700 dark:text-red-300',
                 )}
             >
-                {isPassed ? 'წარმატებით!' : 'ვერ ჩააბარეთ'}
+                {isPassed ? t('წარმატებით!') : t('ვერ ჩააბარეთ')}
             </h1>
 
             <p className="text-lg font-medium">
-                {correctCount}/{totalQuestions} სწორი •{' '}
+                {correctCount}/{totalQuestions} {t('სწორი •')}{' '}
                 {Math.round(scorePercentage)}%
                 {showAnsweredCount && (
                     <span className="block text-sm opacity-70">
-                        ({answeredCount} კითხვაზე პასუხი გაეცა)
+                        ({answeredCount} {t('კითხვაზე პასუხი გაეცა)')}
                     </span>
                 )}
             </p>
 
             {allowedWrong !== undefined && (
                 <p className="text-sm text-muted-foreground">
-                    შეცდომები: {effectiveWrong} / დასაშვები {allowedWrong}
+                    {t('შეცდომები:')} {effectiveWrong} {t('/ დასაშვები')}{' '}
+                    {allowedWrong}
                 </p>
             )}
 
@@ -108,7 +112,7 @@ export function TestResultBanner({
                     <Clock className="h-4 w-4" />
                     {formatTime(timeTakenSeconds)}
                 </span>
-                {testType && <span>{getTestTypeName(testType)}</span>}
+                {testType && <span>{t(getTestTypeName(testType))}</span>}
                 <span className="flex items-center gap-1">
                     {licenseType ? (
                         <>
@@ -116,7 +120,7 @@ export function TestResultBanner({
                             {licenseType.code}
                         </>
                     ) : (
-                        'ყველა'
+                        t('ყველა')
                     )}
                 </span>
             </div>

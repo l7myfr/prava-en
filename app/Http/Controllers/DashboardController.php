@@ -6,6 +6,7 @@ use App\Models\LicenseType;
 use App\Models\Question;
 use App\Models\TestResult;
 use App\Models\UserQuestionProgress;
+use App\Support\ProgressBackup;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -76,6 +77,8 @@ class DashboardController extends Controller
 
         // Get available license types for selection
         $licenseTypes = LicenseType::parents()->with('children')->get();
+
+        ProgressBackup::saveIfDirty();
 
         return Inertia::render('dashboard', [
             'stats' => [

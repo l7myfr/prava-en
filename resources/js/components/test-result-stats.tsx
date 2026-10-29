@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/use-language';
 
 interface TestResultStatsProps {
     correctCount: number;
@@ -11,6 +12,8 @@ export function TestResultStats({
     wrongCount,
     unansweredCount,
 }: TestResultStatsProps) {
+    const { t } = useLanguage();
+
     return (
         <div className="grid grid-cols-3 gap-2">
             <Card>
@@ -18,7 +21,9 @@ export function TestResultStats({
                     <div className="text-xl font-bold text-green-600 dark:text-green-400">
                         {correctCount}
                     </div>
-                    <div className="text-xs text-muted-foreground">სწორი</div>
+                    <div className="text-xs text-muted-foreground">
+                        {t('სწორი')}
+                    </div>
                 </CardContent>
             </Card>
             <Card>
@@ -27,7 +32,7 @@ export function TestResultStats({
                         {wrongCount}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        არასწორი
+                        {t('არასწორი')}
                     </div>
                 </CardContent>
             </Card>
@@ -36,7 +41,9 @@ export function TestResultStats({
                     <div className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                         {unansweredCount}
                     </div>
-                    <div className="text-xs text-muted-foreground">უპასუხო</div>
+                    <div className="text-xs text-muted-foreground">
+                        {t('უპასუხო')}
+                    </div>
                 </CardContent>
             </Card>
         </div>

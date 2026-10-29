@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /** Web build only: literal paths, see auth/welcome.tsx. */
@@ -15,6 +16,8 @@ export default function ResetPassword({
     token: string;
     email: string;
 }) {
+    const { t } = useLanguage();
+
     const form = useForm({
         token,
         email,
@@ -30,12 +33,15 @@ export default function ResetPassword({
     };
 
     return (
-        <AuthLayout title="ახალი პაროლი" description="შეიყვანე ახალი პაროლი">
-            <Head title="ახალი პაროლი" />
+        <AuthLayout
+            title={t('ახალი პაროლი')}
+            description={t('შეიყვანე ახალი პაროლი')}
+        >
+            <Head title={t('ახალი პაროლი')} />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="email">ელფოსტა</Label>
+                    <Label htmlFor="email">{t('ელფოსტა')}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -47,7 +53,7 @@ export default function ResetPassword({
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="password">ახალი პაროლი</Label>
+                    <Label htmlFor="password">{t('ახალი პაროლი')}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -64,7 +70,7 @@ export default function ResetPassword({
 
                 <div className="grid gap-2">
                     <Label htmlFor="password_confirmation">
-                        გაიმეორე პაროლი
+                        {t('გაიმეორე პაროლი')}
                     </Label>
                     <Input
                         id="password_confirmation"
@@ -87,7 +93,7 @@ export default function ResetPassword({
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'ინახება...' : 'პაროლის შეცვლა'}
+                    {form.processing ? t('ინახება...') : t('პაროლის შეცვლა')}
                 </Button>
             </form>
         </AuthLayout>

@@ -10,6 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ZoomableImage } from '@/components/zoomable-image';
+import { useLanguage } from '@/hooks/use-language';
 
 interface Sign {
     id: number;
@@ -41,6 +43,8 @@ export function SignPreview({
     onClose,
     onNavigate,
 }: SignPreviewProps) {
+    const { t, tc } = useLanguage();
+
     const [relatedQuestionsCount, setRelatedQuestionsCount] = useState<
         number | null
     >(null);
@@ -156,9 +160,10 @@ export function SignPreview({
 
                 {/* Sign Image */}
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted/50 p-1.5">
-                    <img
+                    <ZoomableImage
                         src={`/images/signs/${sign.image}`}
-                        alt={sign.title}
+                        alt={tc(sign.title)}
+                        wrapperClassName="h-full"
                         className="h-full w-full object-contain"
                     />
                 </div>
@@ -166,7 +171,7 @@ export function SignPreview({
                 {/* Sign Info */}
                 <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 text-sm leading-tight font-medium">
-                        {sign.title}
+                        {tc(sign.title)}
                     </p>
                     {sign.title_en && (
                         <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
@@ -214,7 +219,7 @@ export function SignPreview({
                     {sign.description && (
                         <div className="rounded-lg bg-muted/50 p-3">
                             <p className="text-sm text-muted-foreground">
-                                {sign.description}
+                                {tc(sign.description)}
                             </p>
                         </div>
                     )}
@@ -235,7 +240,7 @@ export function SignPreview({
                             >
                                 <BookOpen className="h-4 w-4" />
                                 <span>
-                                    დაკავშირებული კითხვები (
+                                    {t('დაკავშირებული კითხვები (')}
                                     {relatedQuestionsCount})
                                 </span>
                                 <ExternalLink className="ml-auto h-4 w-4" />

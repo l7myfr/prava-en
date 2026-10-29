@@ -6,6 +6,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { ZoomableImage } from '@/components/zoomable-image';
+import { useLanguage } from '@/hooks/use-language';
 
 interface Sign {
     id: number;
@@ -29,6 +31,8 @@ export function SignsInfoDialog({
     imageCustom,
     signs,
 }: SignsInfoDialogProps) {
+    const { t, tc } = useLanguage();
+
     const [selectedSign, setSelectedSign] = useState<Sign | null>(null);
 
     // Handle Android back button to close modal instead of navigating
@@ -63,7 +67,7 @@ export function SignsInfoDialog({
             <DialogContent className="max-h-[80vh] overflow-y-auto">
                 <DialogHeader className="pr-8">
                     <DialogTitle className="text-left">
-                        დამატებითი ინფორმაცია
+                        {t('დამატებითი ინფორმაცია')}
                     </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -94,7 +98,7 @@ export function SignsInfoDialog({
                                 >
                                     <img
                                         src={`/images/signs/${sign.image}`}
-                                        alt={sign.title}
+                                        alt={tc(sign.title)}
                                         className="h-12 w-12 object-contain"
                                     />
                                 </button>
@@ -111,11 +115,11 @@ export function SignsInfoDialog({
                             <div className="flex items-start gap-4">
                                 <div className="flex-1">
                                     <h4 className="font-semibold">
-                                        {selectedSign.title}
+                                        {tc(selectedSign.title)}
                                     </h4>
                                     {selectedSign.description && (
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            {selectedSign.description}
+                                            {tc(selectedSign.description)}
                                         </p>
                                     )}
                                 </div>
@@ -126,9 +130,9 @@ export function SignsInfoDialog({
                     {/* Custom Image (illustrative image for description) */}
                     {imageCustom && (
                         <div className="overflow-hidden rounded-lg">
-                            <img
+                            <ZoomableImage
                                 src={`/images/ticket_images_custom_webp/${imageCustom}`}
-                                alt="დამატებითი სურათი"
+                                alt={t('დამატებითი სურათი')}
                                 className="w-full object-contain"
                             />
                         </div>
@@ -137,7 +141,7 @@ export function SignsInfoDialog({
                     {/* Question Description */}
                     {description && (
                         <div className="rounded-lg bg-muted p-3">
-                            <p className="text-sm">{description}</p>
+                            <p className="text-sm">{tc(description)}</p>
                         </div>
                     )}
                 </div>

@@ -1,5 +1,6 @@
 import type { Question } from '@/components/question-card';
 import { QuestionCard } from '@/components/question-card';
+import { useLanguage } from '@/hooks/use-language';
 import type { AnswerState } from '@/lib/test-utils';
 
 interface QuestionListProps {
@@ -15,10 +16,11 @@ export function QuestionList({
     shuffleSeed = 0,
     emptyMessage = 'კითხვები არ არის',
 }: QuestionListProps) {
+    const { t } = useLanguage();
     if (questions.length === 0) {
         return (
             <p className="py-8 text-center text-muted-foreground">
-                {emptyMessage}
+                {t(emptyMessage)}
             </p>
         );
     }

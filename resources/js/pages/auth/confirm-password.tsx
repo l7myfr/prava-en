@@ -5,10 +5,13 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /** Web build only: literal paths, see auth/welcome.tsx. */
 export default function ConfirmPassword() {
+    const { t } = useLanguage();
+
     const form = useForm({ password: '' });
 
     const submit = (event: FormEvent) => {
@@ -20,14 +23,14 @@ export default function ConfirmPassword() {
 
     return (
         <AuthLayout
-            title="პაროლის დადასტურება"
-            description="უსაფრთხოებისთვის გთხოვთ დაადასტუროთ პაროლი"
+            title={t('პაროლის დადასტურება')}
+            description={t('უსაფრთხოებისთვის გთხოვთ დაადასტუროთ პაროლი')}
         >
-            <Head title="პაროლის დადასტურება" />
+            <Head title={t('პაროლის დადასტურება')} />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="password">პაროლი</Label>
+                    <Label htmlFor="password">{t('პაროლი')}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -47,7 +50,7 @@ export default function ConfirmPassword() {
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'იტვირთება...' : 'დადასტურება'}
+                    {form.processing ? t('იტვირთება...') : t('დადასტურება')}
                 </Button>
             </form>
         </AuthLayout>

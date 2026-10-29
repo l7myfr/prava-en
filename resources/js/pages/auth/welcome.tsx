@@ -3,6 +3,7 @@ import { Github, Linkedin, LogIn, ShieldCheck, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/use-language';
 
 interface Author {
     name?: string;
@@ -25,6 +26,8 @@ export default function Welcome({
     storeUrl: string;
     author?: Author;
 }) {
+    const { t } = useLanguage();
+
     const [startingGuest, setStartingGuest] = useState(false);
 
     const startGuestSession = () => {
@@ -34,7 +37,7 @@ export default function Welcome({
 
     return (
         <>
-            <Head title="მართვის მოწმობის ტესტები" />
+            <Head title={t('მართვის მოწმობის ტესტები')} />
 
             <div className="flex min-h-svh flex-col items-center justify-center gap-8 bg-background p-6">
                 <div className="flex flex-col items-center gap-4 text-center">
@@ -49,11 +52,12 @@ export default function Welcome({
                     />
                     <div className="space-y-2">
                         <h1 className="text-2xl font-semibold">
-                            მართვის მოწმობის ტესტები
+                            {t('მართვის მოწმობის ტესტები')}
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            მოემზადე თეორიულ გამოცდაზე: ოფიციალური კითხვები,
-                            საგზაო ნიშნები და სრული სტატისტიკა.
+                            {t(
+                                'მოემზადე თეორიულ გამოცდაზე: ოფიციალური კითხვები, საგზაო ნიშნები და სრული სტატისტიკა.',
+                            )}
                         </p>
                     </div>
                 </div>
@@ -62,7 +66,7 @@ export default function Welcome({
                     <Button asChild className="w-full" size="lg">
                         <Link href="/login">
                             <LogIn className="h-4 w-4" />
-                            შესვლა
+                            {t('შესვლა')}
                         </Link>
                     </Button>
 
@@ -74,7 +78,7 @@ export default function Welcome({
                     >
                         <Link href="/register">
                             <UserPlus className="h-4 w-4" />
-                            რეგისტრაცია
+                            {t('რეგისტრაცია')}
                         </Link>
                     </Button>
 
@@ -84,7 +88,7 @@ export default function Welcome({
                         </div>
                         <div className="relative flex justify-center">
                             <span className="bg-background px-2 text-xs text-muted-foreground">
-                                ან
+                                {t('ან')}
                             </span>
                         </div>
                     </div>
@@ -96,14 +100,16 @@ export default function Welcome({
                         onClick={startGuestSession}
                         disabled={startingGuest}
                     >
-                        {startingGuest ? 'იტვირთება...' : 'გაგრძელება სტუმრად'}
+                        {startingGuest
+                            ? t('იტვირთება...')
+                            : t('გაგრძელება სტუმრად')}
                     </Button>
 
                     <p className="flex items-start gap-2 px-2 text-xs text-muted-foreground">
                         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        სტუმრის შედეგები ინახება მხოლოდ ამ ბრაუზერში და წაიშლება
-                        უმოქმედობის შემდეგ. ანგარიშის შექმნით შედეგებს შეინახავ
-                        სამუდამოდ.
+                        {t(
+                            'სტუმრის შედეგები ინახება მხოლოდ ამ ბრაუზერში და წაიშლება უმოქმედობის შემდეგ. ანგარიშის შექმნით შედეგებს შეინახავ სამუდამოდ.',
+                        )}
                     </p>
                 </div>
 
@@ -124,12 +130,16 @@ export default function Welcome({
                         className="hidden shrink-0 rounded-md bg-white p-1 sm:block"
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">Android აპლიკაცია</p>
+                        <p className="text-sm font-medium">
+                            {t('Android აპლიკაცია')}
+                        </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                            ითამაშე ოფლაინაც. დააინსტალირე Google Play-დან
+                            {t(
+                                'ითამაშე ოფლაინაც. დააინსტალირე Google Play-დან',
+                            )}
                             <span className="hidden sm:inline">
                                 {' '}
-                                ან დაასკანერე კოდი
+                                {t('ან დაასკანერე კოდი')}
                             </span>
                             .
                         </p>
@@ -141,7 +151,11 @@ export default function Welcome({
 
                 {(author.github || author.linkedin) && (
                     <footer className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
-                        {author.name && <span>შექმნილია: {author.name}</span>}
+                        {author.name && (
+                            <span>
+                                {t('შექმნილია:')} {author.name}
+                            </span>
+                        )}
                         <div className="flex items-center gap-4">
                             {author.github && (
                                 <a

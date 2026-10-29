@@ -7,6 +7,7 @@ import { TestResultBanner } from '@/components/test-result-banner';
 import { TestResultStats } from '@/components/test-result-stats';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/hooks/use-language';
 import {
     buildAnswerStates,
     formatDate,
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export default function HistoryShow({ testResult }: Props) {
+    const { t } = useLanguage();
+
     const isPassed = testResult.status === 'passed';
 
     // Filter questions by answer type
@@ -86,7 +89,7 @@ export default function HistoryShow({ testResult }: Props) {
             id="main-scroll-container"
             className="h-screen overflow-y-auto bg-background"
         >
-            <Head title="ტესტის დეტალები" />
+            <Head title={t('ტესტის დეტალები')} />
 
             {/* Header */}
             <div
@@ -99,7 +102,7 @@ export default function HistoryShow({ testResult }: Props) {
                     </Link>
                 </Button>
                 <div className="flex-1">
-                    <h1 className="font-semibold">ტესტის დეტალები</h1>
+                    <h1 className="font-semibold">{t('ტესტის დეტალები')}</h1>
                     <p className="text-xs text-muted-foreground">
                         {formatDate(
                             testResult.finished_at || testResult.started_at,
@@ -132,7 +135,7 @@ export default function HistoryShow({ testResult }: Props) {
                     onClick={handleRedoSame}
                 >
                     <RefreshCw className="h-4 w-4" />
-                    იგივე ტესტი
+                    {t('იგივე ტესტი')}
                 </Button>
                 <Button
                     variant="outline"
@@ -141,7 +144,7 @@ export default function HistoryShow({ testResult }: Props) {
                     onClick={handleNewSimilar}
                 >
                     <Copy className="h-4 w-4" />
-                    მსგავსი ტესტი
+                    {t('მსგავსი ტესტი')}
                 </Button>
             </div>
 
@@ -163,21 +166,24 @@ export default function HistoryShow({ testResult }: Props) {
                             className="gap-1 text-xs data-[state=active]:text-red-600 dark:data-[state=active]:text-red-400"
                         >
                             <X className="h-3 w-3" />
-                            არასწორი ({wrongAnswers.length})
+                            {t('არასწორი (')}
+                            {wrongAnswers.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="correct"
                             className="gap-1 text-xs data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400"
                         >
                             <Check className="h-3 w-3" />
-                            სწორი ({correctAnswers.length})
+                            {t('სწორი (')}
+                            {correctAnswers.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="unanswered"
                             className="gap-1 text-xs data-[state=active]:text-yellow-600 dark:data-[state=active]:text-yellow-400"
                         >
                             <HelpCircle className="h-3 w-3" />
-                            უპასუხო ({unansweredQuestions.length})
+                            {t('უპასუხო (')}
+                            {unansweredQuestions.length})
                         </TabsTrigger>
                     </TabsList>
 
@@ -186,7 +192,7 @@ export default function HistoryShow({ testResult }: Props) {
                             questions={wrongAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="არასწორი პასუხები არ არის"
+                            emptyMessage={t('არასწორი პასუხები არ არის')}
                         />
                     </TabsContent>
 
@@ -195,7 +201,7 @@ export default function HistoryShow({ testResult }: Props) {
                             questions={correctAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="სწორი პასუხები არ არის"
+                            emptyMessage={t('სწორი პასუხები არ არის')}
                         />
                     </TabsContent>
 
@@ -204,7 +210,7 @@ export default function HistoryShow({ testResult }: Props) {
                             questions={unansweredQuestions}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="უპასუხო კითხვები არ არის"
+                            emptyMessage={t('უპასუხო კითხვები არ არის')}
                         />
                     </TabsContent>
                 </Tabs>

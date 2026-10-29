@@ -61,6 +61,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/hooks/use-language';
 import MobileLayout from '@/layouts/mobile-layout';
 import { deriveAllowedWrong, type ExamSpec } from '@/lib/test-utils';
 
@@ -107,6 +108,8 @@ interface Props {
     activeTest: ActiveTest | null;
     licenseTypes: LicenseType[];
     categories: QuestionCategory[];
+    /** Active question counts per topic, keyed by parent licence id. */
+    categoryCountsByLicense: Record<number, Record<number, number>>;
     bookmarkedCount: number;
     userDefaults: {
         license_type_id: number | null;
@@ -157,12 +160,15 @@ export default function TestIndex({
     templates,
     activeTest,
     licenseTypes,
-    categories,
+    categories: allCategories,
+    categoryCountsByLicense,
     bookmarkedCount,
     userDefaults,
     prefilled,
     examRules,
 }: Props) {
+    const { t, tc } = useLanguage();
+
     const [testType, setTestType] = useState<'thematic' | 'bookmarked'>(
         'thematic',
     );
@@ -188,6 +194,8 @@ export default function TestIndex({
         failure_threshold: 10,
         category_ids: prefilled.categories || ([] as number[]),
         auto_advance: userDefaults.auto_advance ?? true,
+        allow_answer_change: false,
+        show_results: true,
     });
 
     // Allowed mistakes for the custom test the user is configuring. The
@@ -216,6 +224,19 @@ export default function TestIndex({
 
         return matched ?? examRules.default;
     }, [examRules, licenseTypes, userDefaults.license_type_id]);
+
+    // A test only uses questions of the chosen licence, so count and offer
+    // topics for that licence alone.
+    const categories = useMemo(() => {
+        const counts = form.data.license_type_id
+            ? categoryCountsByLicense[form.data.license_type_id]
+            : null;
+        if (!counts) return allCategories;
+
+        return allCategories
+            .map((c) => ({ ...c, questions_count: counts[c.id] ?? 0 }))
+            .filter((c) => c.questions_count > 0);
+    }, [allCategories, categoryCountsByLicense, form.data.license_type_id]);
 
     // Total time estimate
     const totalTimeMinutes = useMemo(() => {
@@ -388,7 +409,7 @@ export default function TestIndex({
     };
 
     const handleDeleteTemplate = async (templateId: number) => {
-        if (!confirm('დარწმუნებული ხართ, რომ გსურთ შაბლონის წაშლა?')) return;
+        if (!confirm(t('დარწმუნებული ხართ, რომ გსურთ შაბლონის წაშლა?'))) return;
 
         await fetch(`/templates/${templateId}`, { method: 'DELETE' });
         router.reload();
@@ -396,7 +417,7 @@ export default function TestIndex({
 
     return (
         <MobileLayout>
-            <Head title="ტესტი" />
+            <Head title={t('ტესტი')} />
             <div className="flex flex-col gap-4 p-4">
                 {/* Quick Test Button - runs the official exam for the user's category */}
                 <div className="flex flex-col gap-1.5">
@@ -406,13 +427,14 @@ export default function TestIndex({
                         onClick={handleQuickTest}
                     >
                         <Zap className="h-5 w-5" />
-                        სწრაფი ტესტი
+                        {t('სწრაფი ტესტი')}
                     </Button>
                     <p className="text-center text-xs text-muted-foreground">
-                        {officialSpec.question_count} კითხვა ·{' '}
-                        {officialSpec.correct_to_pass} სწორი პასუხი ·{' '}
-                        {officialSpec.allowed_wrong} შეცდომა დასაშვებია ·{' '}
-                        {Math.round(officialSpec.total_time_seconds / 60)} წუთი
+                        {officialSpec.question_count} {t('კითხვა ·')}{' '}
+                        {officialSpec.correct_to_pass} {t('სწორი პასუხი ·')}{' '}
+                        {officialSpec.allowed_wrong} {t('შეცდომა დასაშვებია ·')}{' '}
+                        {Math.round(officialSpec.total_time_seconds / 60)}{' '}
+                        {t('წუთი')}
                     </p>
                 </div>
 
@@ -430,7 +452,7 @@ export default function TestIndex({
                     <Card>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base">
-                                თქვენი შაბლონები
+                                {t('თქვენი შაბლონები')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
@@ -475,17 +497,18 @@ export default function TestIndex({
                                                         }
                                                     </>
                                                 ) : (
-                                                    'ყველა'
+                                                    t('ყველა')
                                                 )}
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            {template.question_count} კითხვა •{' '}
+                                            {template.question_count}{' '}
+                                            {t('კითხვა •')}{' '}
                                             {Math.floor(
                                                 template.time_per_question / 60,
                                             ) > 0
-                                                ? `${Math.floor(template.time_per_question / 60)}წთ`
-                                                : `${template.time_per_question}წმ`}
+                                                ? `${Math.floor(template.time_per_question / 60)}${t('წთ')}`
+                                                : `${template.time_per_question}${t('წმ')}`}
                                         </p>
                                     </button>
                                     <DropdownMenu>
@@ -507,7 +530,7 @@ export default function TestIndex({
                                                 }
                                             >
                                                 <Play className="mr-2 h-4 w-4" />
-                                                დაწყება
+                                                {t('დაწყება')}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => {
@@ -523,7 +546,7 @@ export default function TestIndex({
                                                     setShowTemplateDialog(true);
                                                 }}
                                             >
-                                                რედაქტირება
+                                                {t('რედაქტირება')}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className="text-destructive"
@@ -534,7 +557,7 @@ export default function TestIndex({
                                                 }
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                წაშლა
+                                                {t('წაშლა')}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -548,7 +571,7 @@ export default function TestIndex({
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base">
-                            ახალი ტესტის შექმნა
+                            {t('ახალი ტესტის შექმნა')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -562,14 +585,14 @@ export default function TestIndex({
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="thematic" className="gap-2">
                                     <BookOpen className="h-4 w-4" />
-                                    თემატური
+                                    {t('თემატური')}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="bookmarked"
                                     className="gap-2"
                                 >
                                     <Bookmark className="h-4 w-4" />
-                                    შენახული
+                                    {t('შენახული')}
                                 </TabsTrigger>
                             </TabsList>
 
@@ -577,7 +600,7 @@ export default function TestIndex({
                                 {/* License Type */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <Label>კატეგორია</Label>
+                                        <Label>{t('კატეგორია')}</Label>
                                         <Button
                                             type="button"
                                             variant="outline"
@@ -593,7 +616,7 @@ export default function TestIndex({
                                                 form.data.license_type_id ===
                                                 userDefaults.license_type_id
                                             }
-                                            title="ნაგულისხმევზე დაბრუნება"
+                                            title={t('ნაგულისხმევზე დაბრუნება')}
                                         >
                                             <Undo2 className="h-3.5 w-3.5" />
                                         </Button>
@@ -613,11 +636,15 @@ export default function TestIndex({
                                         }
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="ყველა კატეგორია" />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'ყველა კატეგორია',
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">
-                                                ყველა კატეგორია
+                                                {t('ყველა კატეგორია')}
                                             </SelectItem>
                                             {licenseTypes.map((lt) => (
                                                 <SelectItem
@@ -644,7 +671,7 @@ export default function TestIndex({
                                 {/* Categories Multi-select */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <Label>თემები</Label>
+                                        <Label>{t('თემები')}</Label>
                                         <div className="flex gap-1">
                                             <button
                                                 type="button"
@@ -658,7 +685,7 @@ export default function TestIndex({
                                                 }
                                                 className="text-xs text-primary hover:underline"
                                             >
-                                                ყველა
+                                                {t('ყველა')}
                                             </button>
                                             <span className="text-xs text-muted-foreground">
                                                 /
@@ -673,7 +700,7 @@ export default function TestIndex({
                                                 }
                                                 className="text-xs text-muted-foreground hover:text-foreground hover:underline"
                                             >
-                                                გასუფთავება
+                                                {t('გასუფთავება')}
                                             </button>
                                         </div>
                                     </div>
@@ -726,7 +753,7 @@ export default function TestIndex({
                                                     )}
                                                 </div>
                                                 <span className="flex-1 truncate">
-                                                    {cat.name}
+                                                    {tc(cat.name)}
                                                 </span>
                                                 <span className="shrink-0 text-xs text-muted-foreground">
                                                     {cat.questions_count}
@@ -736,21 +763,16 @@ export default function TestIndex({
                                     </div>
                                     {form.data.category_ids.length > 0 && (
                                         <p className="text-xs text-muted-foreground">
-                                            არჩეულია:{' '}
-                                            {form.data.category_ids.length} თემა
-                                            {' • '}
-                                            {categories
-                                                .filter((c) =>
-                                                    form.data.category_ids.includes(
-                                                        c.id,
-                                                    ),
-                                                )
-                                                .reduce(
-                                                    (sum, c) =>
-                                                        sum + c.questions_count,
-                                                    0,
-                                                )}{' '}
-                                            კითხვა
+                                            {t('არჩეულია:')}{' '}
+                                            {t(
+                                                '{topics} თემა · {questions} კითხვა',
+                                                {
+                                                    topics: form.data
+                                                        .category_ids.length,
+                                                    questions:
+                                                        maxAvailableQuestions,
+                                                },
+                                            )}
                                         </p>
                                     )}
                                 </div>
@@ -760,12 +782,17 @@ export default function TestIndex({
                                 <div className="rounded-lg border border-dashed p-4 text-center">
                                     <Bookmark className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                                     <p className="text-sm font-medium">
-                                        შენახული კითხვები
+                                        {t('შენახული კითხვები')}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                         {bookmarkedCount > 0
-                                            ? `თქვენ გაქვთ ${bookmarkedCount} შენახული კითხვა`
-                                            : 'თქვენ ჯერ არ გაქვთ შენახული კითხვები'}
+                                            ? t(
+                                                  'თქვენ გაქვთ {count} შენახული კითხვა',
+                                                  { count: bookmarkedCount },
+                                              )
+                                            : t(
+                                                  'თქვენ ჯერ არ გაქვთ შენახული კითხვები',
+                                              )}
                                     </p>
                                 </div>
                             </TabsContent>
@@ -775,7 +802,7 @@ export default function TestIndex({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between gap-2">
                                 <Label className="text-sm leading-relaxed">
-                                    კითხვების რაოდენობა
+                                    {t('კითხვების რაოდენობა')}
                                 </Label>
                                 <div className="flex shrink-0 items-center gap-1">
                                     <span className="text-xs font-medium">
@@ -803,7 +830,7 @@ export default function TestIndex({
                                                 maxAvailableQuestions,
                                             )
                                         }
-                                        title="ნაგულისხმევზე დაბრუნება"
+                                        title={t('ნაგულისხმევზე დაბრუნება')}
                                     >
                                         <Undo2 className="h-3.5 w-3.5" />
                                     </Button>
@@ -821,7 +848,7 @@ export default function TestIndex({
                             />
                             {maxAvailableQuestions < 1 && (
                                 <p className="text-xs text-destructive">
-                                    არასაკმარისი კითხვები (
+                                    {t('არასაკმარისი კითხვები (')}
                                     {maxAvailableQuestions})
                                 </p>
                             )}
@@ -831,7 +858,7 @@ export default function TestIndex({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label className="text-sm leading-relaxed">
-                                    დრო კითხვაზე
+                                    {t('დრო კითხვაზე')}
                                 </Label>
                                 <Button
                                     type="button"
@@ -848,7 +875,7 @@ export default function TestIndex({
                                         form.data.time_per_question ===
                                         DEFAULTS.time_per_question
                                     }
-                                    title="ნაგულისხმევზე დაბრუნება"
+                                    title={t('ნაგულისხმევზე დაბრუნება')}
                                 >
                                     <Undo2 className="h-3.5 w-3.5" />
                                 </Button>
@@ -871,7 +898,7 @@ export default function TestIndex({
                                             key={opt.value}
                                             value={opt.value.toString()}
                                         >
-                                            {opt.label}
+                                            {t(opt.label)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -882,7 +909,7 @@ export default function TestIndex({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between gap-2">
                                 <Label className="text-sm leading-relaxed">
-                                    დასაშვები შეცდომები
+                                    {t('დასაშვები შეცდომები')}
                                 </Label>
                                 <div className="flex shrink-0 items-center gap-1">
                                     <span className="text-xs font-medium">
@@ -904,7 +931,7 @@ export default function TestIndex({
                                             form.data.failure_threshold ===
                                             DEFAULTS.failure_threshold
                                         }
-                                        title="ნაგულისხმევზე დაბრუნება"
+                                        title={t('ნაგულისხმევზე დაბრუნება')}
                                     >
                                         <Undo2 className="h-3.5 w-3.5" />
                                     </Button>
@@ -920,8 +947,8 @@ export default function TestIndex({
                                 step={5}
                             />
                             <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>მკაცრი (5%)</span>
-                                <span>რბილი (30%)</span>
+                                <span>{t('მკაცრი (5%)')}</span>
+                                <span>{t('რბილი (30%)')}</span>
                             </div>
                         </div>
 
@@ -929,11 +956,12 @@ export default function TestIndex({
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                                 <Label className="text-sm leading-relaxed">
-                                    ავტო-გადასვლა
+                                    {t('ავტო-გადასვლა')}
                                 </Label>
                                 <p className="text-xs text-muted-foreground">
-                                    პასუხის შემდეგ ავტომატურად გადავა შემდეგ
-                                    კითხვაზე
+                                    {t(
+                                        'პასუხის შემდეგ ავტომატურად გადავა შემდეგ კითხვაზე',
+                                    )}
                                 </p>
                             </div>
                             <Switch
@@ -944,14 +972,54 @@ export default function TestIndex({
                             />
                         </div>
 
+                        {/* Allow changing answers (never in the official mock exam) */}
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label className="text-sm leading-relaxed">
+                                    {t('პასუხის შეცვლა')}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t(
+                                        'პასუხის გაცემის შემდეგ შეგიძლია სხვა პასუხი აირჩიო',
+                                    )}
+                                </p>
+                            </div>
+                            <Switch
+                                checked={form.data.allow_answer_change}
+                                onCheckedChange={(v) =>
+                                    form.setData('allow_answer_change', v)
+                                }
+                            />
+                        </div>
+
+                        {/* Right/wrong straight away, or only once everything is answered */}
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label className="text-sm leading-relaxed">
+                                    {t('შედეგი მაშინვე')}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t(
+                                        'გამორთვისას სწორი/არასწორი ჩანს ყველა კითხვაზე პასუხის შემდეგ',
+                                    )}
+                                </p>
+                            </div>
+                            <Switch
+                                checked={form.data.show_results}
+                                onCheckedChange={(v) =>
+                                    form.setData('show_results', v)
+                                }
+                            />
+                        </div>
+
                         {/* Summary */}
                         <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
                             <div className="flex items-center gap-2 text-sm">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span>სავარაუდო დრო:</span>
+                                <span>{t('სავარაუდო დრო:')}</span>
                             </div>
                             <span className="text-sm font-medium">
-                                ~{totalTimeMinutes} წუთი
+                                ~{totalTimeMinutes} {t('წუთი')}
                             </span>
                         </div>
 
@@ -967,7 +1035,7 @@ export default function TestIndex({
                                 }}
                             >
                                 <Plus className="h-4 w-4" />
-                                შაბლონად
+                                {t('შაბლონად')}
                             </Button>
                             <Button
                                 className="order-1 min-w-0 flex-1 sm:order-2"
@@ -980,7 +1048,9 @@ export default function TestIndex({
                                 }
                             >
                                 <Play className="h-4 w-4 shrink-0" />
-                                <span className="truncate">ტესტის დაწყება</span>
+                                <span className="truncate">
+                                    {t('ტესტის დაწყება')}
+                                </span>
                             </Button>
                         </div>
                     </CardContent>
@@ -996,23 +1066,23 @@ export default function TestIndex({
                     <DialogHeader>
                         <DialogTitle>
                             {editingTemplate
-                                ? 'შაბლონის რედაქტირება'
-                                : 'შაბლონის შენახვა'}
+                                ? t('შაბლონის რედაქტირება')
+                                : t('შაბლონის შენახვა')}
                         </DialogTitle>
                         <DialogDescription>
-                            შეინახეთ მიმდინარე პარამეტრები შაბლონად
+                            {t('შეინახეთ მიმდინარე პარამეტრები შაბლონად')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="templateName">სახელი</Label>
+                            <Label htmlFor="templateName">{t('სახელი')}</Label>
                             <Input
                                 id="templateName"
                                 value={templateName}
                                 onChange={(e) =>
                                     setTemplateName(e.target.value)
                                 }
-                                placeholder="მაგ: B კატეგორია - სრული"
+                                placeholder={t('მაგ: B კატეგორია - სრული')}
                             />
                         </div>
                     </div>
@@ -1021,13 +1091,13 @@ export default function TestIndex({
                             variant="outline"
                             onClick={() => setShowTemplateDialog(false)}
                         >
-                            გაუქმება
+                            {t('გაუქმება')}
                         </Button>
                         <Button
                             onClick={handleSaveTemplate}
                             disabled={!templateName.trim()}
                         >
-                            შენახვა
+                            {t('შენახვა')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1044,14 +1114,15 @@ export default function TestIndex({
                             <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                         </div>
                         <AlertDialogTitle className="text-center">
-                            აქტიური ტესტი დაიკარგება
+                            {t('აქტიური ტესტი დაიკარგება')}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-center">
-                            თქვენ გაქვთ დაწყებული ტესტი (
+                            {t('თქვენ გაქვთ დაწყებული ტესტი (')}
                             {activeTest?.answered_count}/
-                            {activeTest?.total_questions} პასუხი გაცემული).
-                            ახალი ტესტის დაწყება გამოიწვევს მიმდინარე ტესტის
-                            გაუქმებას.
+                            {activeTest?.total_questions}{' '}
+                            {t(
+                                'პასუხი გაცემული). ახალი ტესტის დაწყება გამოიწვევს მიმდინარე ტესტის გაუქმებას.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
@@ -1059,13 +1130,13 @@ export default function TestIndex({
                             onClick={handleCancelAbandon}
                             className="w-full sm:w-auto"
                         >
-                            გაგრძელება
+                            {t('გაგრძელება')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmAbandon}
                             className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 sm:w-auto"
                         >
-                            ახლის დაწყება
+                            {t('ახლის დაწყება')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

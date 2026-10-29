@@ -14,6 +14,8 @@ class UserQuestionProgress extends Model
         'question_id',
         'times_correct',
         'times_wrong',
+        'last_answer_correct',
+        'last_answer_id',
         'is_bookmarked',
         'is_learned',
         'notes',
@@ -24,6 +26,7 @@ class UserQuestionProgress extends Model
     protected function casts(): array
     {
         return [
+            'last_answer_correct' => 'boolean',
             'is_bookmarked' => 'boolean',
             'is_learned' => 'boolean',
             'last_answered_at' => 'datetime',

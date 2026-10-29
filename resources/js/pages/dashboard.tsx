@@ -17,6 +17,7 @@ import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/use-language';
 import MobileLayout from '@/layouts/mobile-layout';
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
@@ -98,6 +99,8 @@ export default function Dashboard({
     licenseTypes,
     passChance,
 }: Props) {
+    const { t } = useLanguage();
+
     const { auth } = usePage<SharedData>().props;
     const user = auth.user;
 
@@ -150,7 +153,7 @@ export default function Dashboard({
 
     return (
         <MobileLayout>
-            <Head title="მთავარი" />
+            <Head title={t('მთავარი')} />
             <div className="flex flex-col gap-4 p-4">
                 {/* User Profile Card */}
                 <Card>
@@ -177,8 +180,8 @@ export default function Dashboard({
                                         )
                                     }
                                     licenseTypes={licenseTypes}
-                                    placeholder="აირჩიე კატეგორია"
-                                    emptyLabel="არ არის არჩეული"
+                                    placeholder={t('აირჩიე კატეგორია')}
+                                    emptyLabel={t('არ არის არჩეული')}
                                     size="compact"
                                 />
                             </div>
@@ -258,7 +261,7 @@ export default function Dashboard({
                             onClick={() => router.post('/test/quick')}
                         >
                             <Zap className="h-5 w-5 text-amber-500" />
-                            <span className="text-sm">სწრაფი ტესტი</span>
+                            <span className="text-sm">{t('სწრაფი ტესტი')}</span>
                         </Button>
                         <Button
                             asChild
@@ -267,7 +270,7 @@ export default function Dashboard({
                         >
                             <Link href="/questions">
                                 <BookOpen className="h-5 w-5 text-blue-500" />
-                                <span className="text-sm">კითხვები</span>
+                                <span className="text-sm">{t('კითხვები')}</span>
                             </Link>
                         </Button>
                     </div>
@@ -276,7 +279,9 @@ export default function Dashboard({
                 {/* Statistics */}
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">სტატისტიკა</CardTitle>
+                        <CardTitle className="text-base">
+                            {t('სტატისტიკა')}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-3">
                         <div className="rounded-lg bg-blue-500/10 p-3 text-center">
@@ -284,7 +289,7 @@ export default function Dashboard({
                                 {stats.total_tests}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                ტესტები
+                                {t('ტესტები')}
                             </div>
                         </div>
                         <div className="rounded-lg bg-green-500/10 p-3 text-center">
@@ -292,7 +297,7 @@ export default function Dashboard({
                                 {stats.pass_rate}%
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                წარმატება
+                                {t('წარმატება')}
                             </div>
                         </div>
                         <div className="rounded-lg bg-purple-500/10 p-3 text-center">
@@ -300,7 +305,7 @@ export default function Dashboard({
                                 {stats.total_correct}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                სწორი პასუხი
+                                {t('სწორი პასუხი')}
                             </div>
                         </div>
                         <div className="rounded-lg bg-orange-500/10 p-3 text-center">
@@ -308,7 +313,7 @@ export default function Dashboard({
                                 {stats.total_wrong}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                არასწორი
+                                {t('არასწორი')}
                             </div>
                         </div>
                     </CardContent>
@@ -320,13 +325,13 @@ export default function Dashboard({
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base">
-                                    ბოლო ტესტები
+                                    {t('ბოლო ტესტები')}
                                 </CardTitle>
                                 <Link
                                     href="/test/history"
                                     className="text-xs text-primary"
                                 >
-                                    ყველა
+                                    {t('ყველა')}
                                 </Link>
                             </div>
                         </CardHeader>
@@ -358,8 +363,8 @@ export default function Dashboard({
                                 ))}
                             </div>
                             <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                                <span>ძველი</span>
-                                <span>ახალი</span>
+                                <span>{t('ძველი')}</span>
+                                <span>{t('ახალი')}</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -368,12 +373,14 @@ export default function Dashboard({
                 {/* Progress */}
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">პროგრესი</CardTitle>
+                        <CardTitle className="text-base">
+                            {t('პროგრესი')}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="mb-2 flex justify-between text-sm">
                             <span className="text-muted-foreground">
-                                შესწავლილი კითხვები
+                                {t('შესწავლილი კითხვები')}
                             </span>
                             <span className="font-medium">
                                 {progress.studied} / {progress.total}
@@ -397,7 +404,7 @@ export default function Dashboard({
                         <CardHeader className="pb-2">
                             <CardTitle className="flex items-center gap-2 text-base">
                                 <Target className="h-4 w-4" />
-                                ჩაბარების შანსი
+                                {t('ჩაბარების შანსი')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -443,7 +450,9 @@ export default function Dashboard({
                                             <XCircle className="h-3 w-3 text-red-500" />
                                             {perf.failed}
                                         </span>
-                                        <span>საშ. {perf.avg_score}%</span>
+                                        <span>
+                                            {t('საშ.')} {perf.avg_score}%
+                                        </span>
                                     </div>
                                     {/* Pass chance bar */}
                                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -476,17 +485,18 @@ export default function Dashboard({
                             </div>
                             <div>
                                 <h3 className="font-semibold">
-                                    მზად ხარ დასაწყებად?
+                                    {t('მზად ხარ დასაწყებად?')}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    დაიწყე პირველი ტესტი და თვალი ადევნე შენს
-                                    პროგრესს
+                                    {t(
+                                        'დაიწყე პირველი ტესტი და თვალი ადევნე შენს პროგრესს',
+                                    )}
                                 </p>
                             </div>
                             <Button asChild>
                                 <Link href="/test">
                                     <Zap className="mr-2 h-4 w-4" />
-                                    ტესტის დაწყება
+                                    {t('ტესტის დაწყება')}
                                 </Link>
                             </Button>
                         </CardContent>

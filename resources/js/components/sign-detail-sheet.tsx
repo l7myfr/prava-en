@@ -12,6 +12,8 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ZoomableImage } from '@/components/zoomable-image';
+import { useLanguage } from '@/hooks/use-language';
 
 interface Sign {
     id: number;
@@ -40,6 +42,8 @@ export function SignDetailSheet({
     open,
     onOpenChange,
 }: SignDetailSheetProps) {
+    const { t, tc } = useLanguage();
+
     const [relatedQuestionsCount, setRelatedQuestionsCount] = useState<
         number | null
     >(null);
@@ -106,18 +110,19 @@ export function SignDetailSheet({
                 <SheetHeader className="text-left">
                     <div className="flex items-start gap-4">
                         <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border bg-muted/50 p-2">
-                            <img
+                            <ZoomableImage
                                 src={`/images/signs/${sign.image}`}
-                                alt={sign.title}
+                                alt={tc(sign.title)}
+                                wrapperClassName="h-full"
                                 className="h-full w-full object-contain"
                             />
                         </div>
                         <div className="flex-1 space-y-2">
                             <Badge variant="secondary" className="text-xs">
-                                {category.name}
+                                {tc(category.name)}
                             </Badge>
                             <SheetTitle className="text-lg leading-tight">
-                                {sign.title}
+                                {tc(sign.title)}
                             </SheetTitle>
                             {sign.title_en && (
                                 <SheetDescription className="text-sm">
@@ -132,7 +137,7 @@ export function SignDetailSheet({
                     {sign.description && (
                         <div className="rounded-lg bg-muted/50 p-3">
                             <p className="text-sm text-muted-foreground">
-                                {sign.description}
+                                {tc(sign.description)}
                             </p>
                         </div>
                     )}
@@ -148,7 +153,7 @@ export function SignDetailSheet({
                             >
                                 <BookOpen className="h-4 w-4" />
                                 <span>
-                                    დაკავშირებული კითხვები (
+                                    {t('დაკავშირებული კითხვები (')}
                                     {relatedQuestionsCount})
                                 </span>
                                 <ExternalLink className="ml-auto h-4 w-4" />

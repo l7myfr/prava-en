@@ -1,12 +1,14 @@
 <?php
 
 use App\Models\Answer;
+use App\Models\LicenseType;
 use App\Models\Question;
 use App\Models\QuestionCategory;
 use App\Models\TestResult;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     // Create a user
@@ -355,5 +357,65 @@ describe('Test Results Page', function () {
             ->get("/test/{$this->testResult->id}/results");
 
         $response->assertRedirect();
+    });
+});
+
+describe('Changing answers', function () {
+    it('refuses a second answer when the test does not allow changes', function () {
+        $question = $this->questions->first();
+        [$first, $second] = [$question->answers[0], $question->answers[1]];
+
+        $this->actingAs($this->user)->postJson("/test/{$this->testResult->id}/answer", [
+            'question_id' => $question->id, 'answer_id' => $first->id, 'remaining_time' => 170,
+        ])->assertOk();
+
+        $this->actingAs($this->user)->postJson("/test/{$this->testResult->id}/answer", [
+            'question_id' => $question->id, 'answer_id' => $second->id, 'remaining_time' => 160,
+        ])->assertStatus(400);
+    });
+
+    it('moves the score when an allowed answer change flips the result', function () {
+        $this->testResult->update(['configuration' => [...$this->testResult->configuration, 'allow_answer_change' => true]]);
+        $question = $this->questions->first();
+        $correct = $question->answers->firstWhere('is_correct', true);
+        $wrong = $question->answers->firstWhere('is_correct', false);
+
+        $this->actingAs($this->user)->postJson("/test/{$this->testResult->id}/answer", [
+            'question_id' => $question->id, 'answer_id' => $wrong->id, 'remaining_time' => 170,
+        ])->assertJson(['correct_count' => 0, 'wrong_count' => 1]);
+
+        $this->actingAs($this->user)->postJson("/test/{$this->testResult->id}/answer", [
+            'question_id' => $question->id, 'answer_id' => $correct->id, 'remaining_time' => 160,
+        ])->assertJson(['correct_count' => 1, 'wrong_count' => 0]);
+
+        expect($this->testResult->fresh()->answers_given[$question->id]['answer_id'])->toBe($correct->id);
+    });
+
+    it('never lets the official mock exam allow answer changes', function () {
+        $this->user->update(['default_license_type_id' => LicenseType::factory()->create(['code' => 'B'])->id]);
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+
+        $this->actingAs($this->user)->post('/test/quick', ['allow_answer_change' => true]);
+
+        $quick = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($quick->configuration['allow_answer_change'] ?? false)->toBeFalse();
+    });
+});
+
+describe('Showing results', function () {
+    it('stores whether a self-made test shows right/wrong straight away', function () {
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+
+        $this->actingAs($this->user)->post('/test', [
+            'test_type' => 'thematic',
+            'question_count' => 2,
+            'time_per_question' => 60,
+            'failure_threshold' => 10,
+            'category_ids' => [$this->category->id],
+            'show_results' => false,
+        ]);
+
+        $test = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($test->configuration['show_results'])->toBeFalse();
     });
 });

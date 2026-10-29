@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 interface LicenseType {
@@ -88,6 +89,7 @@ export function LicenseTypeSelect({
     triggerClassName,
     size = 'default',
 }: LicenseTypeSelectProps) {
+    const { t } = useLanguage();
     const selectedLicense = licenseTypes.find((lt) => lt.id === value);
 
     const handleChange = (v: string) => {
@@ -128,10 +130,10 @@ export function LicenseTypeSelect({
                         )}
                     </>
                 )}
-                <SelectValue placeholder={placeholder} />
+                <SelectValue placeholder={t(placeholder)} />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">{emptyLabel}</SelectItem>
+                <SelectItem value="all">{t(emptyLabel)}</SelectItem>
                 {licenseTypes.map((lt) => (
                     <SelectItem key={lt.id} value={lt.id.toString()}>
                         {formatLicenseDisplay(lt, size !== 'compact')}

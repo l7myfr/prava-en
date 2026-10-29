@@ -21,6 +21,7 @@ import { SignPreview } from '@/components/sign-preview';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useLanguage } from '@/hooks/use-language';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import MobileLayout from '@/layouts/mobile-layout';
 import { cn } from '@/lib/utils';
@@ -127,6 +128,8 @@ function getCategoryStyle(groupNumber: number) {
 }
 
 export default function SignsIndex({ categories, totalSigns }: Props) {
+    const { t, tc } = useLanguage();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
         null,
@@ -224,15 +227,15 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
             const query = searchQuery.toLowerCase();
             signs = signs.filter(
                 (s) =>
-                    s.title.toLowerCase().includes(query) ||
+                    tc(s.title).toLowerCase().includes(query) ||
                     (s.title_en && s.title_en.toLowerCase().includes(query)) ||
                     (s.description &&
-                        s.description.toLowerCase().includes(query)),
+                        tc(s.description).toLowerCase().includes(query)),
             );
         }
 
         return signs;
-    }, [categories, selectedCategoryId, selectedNoteIndex, searchQuery]);
+    }, [categories, selectedCategoryId, selectedNoteIndex, searchQuery, tc]);
 
     const handleCategorySelect = useCallback((categoryId: number | null) => {
         setSelectedCategoryId(categoryId);
@@ -258,8 +261,8 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
     }, [categories, selectedSign]);
 
     return (
-        <MobileLayout title="ნიშნები">
-            <Head title="საგზაო ნიშნები" />
+        <MobileLayout title={t('ნიშნები')}>
+            <Head title={t('საგზაო ნიშნები')} />
 
             <div
                 ref={scrollContainerRef}
@@ -278,7 +281,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                         <div className="relative">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
-                                placeholder="ნიშნის ძებნა..."
+                                placeholder={t('ნიშნის ძებნა...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pr-9 pl-9"
@@ -309,7 +312,8 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                     size="sm"
                                     onClick={() => handleCategorySelect(null)}
                                 >
-                                    ყველა ({totalSigns})
+                                    {t('ყველა (')}
+                                    {totalSigns})
                                 </Button>
                                 {categories.slice(0, 5).map((category) => {
                                     const style = getCategoryStyle(
@@ -342,7 +346,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                                 )}
                                             />
                                             <span className="max-w-[100px] truncate">
-                                                {category.name}
+                                                {tc(category.name)}
                                             </span>
                                             <Badge
                                                 variant={
@@ -395,7 +399,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                                 )}
                                             />
                                             <span className="max-w-[100px] truncate">
-                                                {category.name}
+                                                {tc(category.name)}
                                             </span>
                                             <Badge
                                                 variant={
@@ -431,7 +435,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                 onClick={() => setSelectedNoteIndex(null)}
                                 className="shrink-0 text-xs"
                             >
-                                ყველა ნიშანი
+                                {t('ყველა ნიშანი')}
                             </Button>
                             {selectedCategory.notes.map((note, index) => (
                                 <Button
@@ -445,7 +449,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                     onClick={() => setSelectedNoteIndex(index)}
                                     className="shrink-0 text-xs"
                                 >
-                                    შენიშვნა {index + 1}
+                                    {t('შენიშვნა')} {index + 1}
                                     <Badge
                                         variant="outline"
                                         className="ml-1.5 h-4 px-1 text-[10px]"
@@ -465,9 +469,11 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground"
                                     dangerouslySetInnerHTML={{
-                                        __html: selectedCategory.notes[
-                                            selectedNoteIndex
-                                        ].content,
+                                        __html: tc(
+                                            selectedCategory.notes[
+                                                selectedNoteIndex
+                                            ].content,
+                                        ),
                                     }}
                                 />
                             </div>
@@ -479,26 +485,26 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                     <p className="text-sm text-muted-foreground">
                         {searchQuery ? (
                             <>
-                                ნაპოვნია{' '}
+                                {t('ნაპოვნია')}{' '}
                                 <span className="font-medium text-foreground">
                                     {filteredSigns.length}
                                 </span>{' '}
-                                ნიშანი
+                                {t('ნიშანი')}
                             </>
                         ) : selectedCategoryId ? (
                             <>
                                 <span className="font-medium text-foreground">
                                     {filteredSigns.length}
                                 </span>{' '}
-                                ნიშანი კატეგორიაში
+                                {t('ნიშანი კატეგორიაში')}
                             </>
                         ) : (
                             <>
-                                სულ{' '}
+                                {t('სულ')}{' '}
                                 <span className="font-medium text-foreground">
                                     {totalSigns}
                                 </span>{' '}
-                                ნიშანი
+                                {t('ნიშანი')}
                             </>
                         )}
                     </p>
@@ -510,7 +516,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                         <div className="py-12 text-center">
                             <Search className="mx-auto h-12 w-12 text-muted-foreground/50" />
                             <p className="mt-4 text-muted-foreground">
-                                ნიშანი ვერ მოიძებნა
+                                {t('ნიშანი ვერ მოიძებნა')}
                             </p>
                             {searchQuery && (
                                 <Button
@@ -518,7 +524,7 @@ export default function SignsIndex({ categories, totalSigns }: Props) {
                                     onClick={() => setSearchQuery('')}
                                     className="mt-2"
                                 >
-                                    ძებნის გასუფთავება
+                                    {t('ძებნის გასუფთავება')}
                                 </Button>
                             )}
                         </div>

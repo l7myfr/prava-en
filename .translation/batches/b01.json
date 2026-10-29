@@ -1,0 +1,420 @@
+[
+ {
+  "kind": "misc",
+  "items": [
+   {
+    "id": "question_categories.1.name",
+    "k": "s1",
+    "ka": "ტერმინები"
+   },
+   {
+    "id": "question_categories.2.name",
+    "k": "s2",
+    "ka": "მძღოლის უფლებები"
+   },
+   {
+    "id": "question_categories.3.name",
+    "k": "s3",
+    "ka": "მაფრთხილებელი"
+   },
+   {
+    "id": "question_categories.4.name",
+    "k": "s4",
+    "ka": "პრიორიტეტი"
+   },
+   {
+    "id": "question_categories.5.name",
+    "k": "s5",
+    "ka": "მიმთითებელი"
+   },
+   {
+    "id": "question_categories.6.name",
+    "k": "s6",
+    "ka": "ამკრძალავი"
+   },
+   {
+    "id": "question_categories.7.name",
+    "k": "s7",
+    "ka": "დამატებითი"
+   },
+   {
+    "id": "question_categories.8.name",
+    "k": "s8",
+    "ka": "საცნობი ნიშნები"
+   },
+   {
+    "id": "question_categories.9.name",
+    "k": "s9",
+    "ka": "საინფორმაციო"
+   },
+   {
+    "id": "question_categories.10.name",
+    "k": "s10",
+    "ka": "რევერსული ზოლი"
+   },
+   {
+    "id": "question_categories.11.name",
+    "k": "s11",
+    "ka": "გზაზე გასვლა"
+   },
+   {
+    "id": "question_categories.12.name",
+    "k": "s12",
+    "ka": "სასწავლო"
+   },
+   {
+    "id": "question_categories.13.name",
+    "k": "s13",
+    "ka": "მონიშვნა"
+   },
+   {
+    "id": "question_categories.14.name",
+    "k": "s14",
+    "ka": "შუქნიშანი"
+   },
+   {
+    "id": "question_categories.15.name",
+    "k": "s15",
+    "ka": "გზაჯვარედინი"
+   },
+   {
+    "id": "question_categories.16.name",
+    "k": "s16",
+    "ka": "ბავშვები"
+   },
+   {
+    "id": "question_categories.17.name",
+    "k": "s17",
+    "ka": "სპეც-მანქანა"
+   },
+   {
+    "id": "question_categories.18.name",
+    "k": "s18",
+    "ka": "მარეგულირებელი"
+   },
+   {
+    "id": "question_categories.19.name",
+    "k": "s19",
+    "ka": "სამუხრუჭე"
+   },
+   {
+    "id": "question_categories.20.name",
+    "k": "s20",
+    "ka": "მკვეთრი დამუხრუჭება"
+   },
+   {
+    "id": "question_categories.21.name",
+    "k": "s21",
+    "ka": "ბუქსირება"
+   },
+   {
+    "id": "question_categories.22.name",
+    "k": "s22",
+    "ka": "ავტომაგისტრალი"
+   },
+   {
+    "id": "question_categories.23.name",
+    "k": "s23",
+    "ka": "უწესივრობა"
+   },
+   {
+    "id": "question_categories.24.name",
+    "k": "s24",
+    "ka": "კანონმდებლობა"
+   },
+   {
+    "id": "question_categories.25.name",
+    "k": "s25",
+    "ka": "ეკო-მართვა"
+   },
+   {
+    "id": "question_categories.26.name",
+    "k": "s26",
+    "ka": "სიგნალები"
+   },
+   {
+    "id": "question_categories.27.name",
+    "k": "s27",
+    "ka": "არასაკმარისი ხილვად."
+   },
+   {
+    "id": "question_categories.28.name",
+    "k": "s28",
+    "ka": "საავარიო"
+   },
+   {
+    "id": "question_categories.29.name",
+    "k": "s29",
+    "ka": "სიჩქარე"
+   },
+   {
+    "id": "question_categories.30.name",
+    "k": "s30",
+    "ka": "მეხრე"
+   },
+   {
+    "id": "question_categories.31.name",
+    "k": "s31",
+    "ka": "ზოლებში მოძრაობა"
+   },
+   {
+    "id": "question_categories.32.name",
+    "k": "s32",
+    "ka": "გასწრება"
+   },
+   {
+    "id": "question_categories.33.name",
+    "k": "s33",
+    "ka": "რკინიგზა"
+   },
+   {
+    "id": "question_categories.34.name",
+    "k": "s34",
+    "ka": "ქვეითი"
+   },
+   {
+    "id": "question_categories.35.name",
+    "k": "s35",
+    "ka": "გაჩერება, დგომა"
+   },
+   {
+    "id": "question_categories.36.name",
+    "k": "s36",
+    "ka": "სამედიცინო"
+   },
+   {
+    "id": "question_categories.37.name",
+    "k": "s37",
+    "ka": "ჯარიმები"
+   },
+   {
+    "id": "question_categories.38.name",
+    "k": "s38",
+    "ka": "არ დაგავიწყდეთ!"
+   },
+   {
+    "id": "question_categories.39.name",
+    "k": "s39",
+    "ka": "დარწმუნდეს"
+   },
+   {
+    "id": "question_categories.40.name",
+    "k": "s40",
+    "ka": "სამარშრუტო"
+   },
+   {
+    "id": "question_categories.41.name",
+    "k": "s41",
+    "ka": "მასა"
+   },
+   {
+    "id": "question_categories.42.name",
+    "k": "s42",
+    "ka": "მოპედი"
+   },
+   {
+    "id": "question_categories.43.name",
+    "k": "s43",
+    "ka": "მოცურება"
+   },
+   {
+    "id": "question_categories.44.name",
+    "k": "s44",
+    "ka": "ლოგიკური"
+   },
+   {
+    "id": "question_categories.45.name",
+    "k": "s45",
+    "ka": "კონვეცია"
+   },
+   {
+    "id": "question_categories.46.name",
+    "k": "s46",
+    "ka": "გადაზიდვები"
+   },
+   {
+    "id": "license_types.1.name",
+    "k": "s47",
+    "ka": "მსუბუქი ავტომობილი"
+   },
+   {
+    "id": "license_types.2.name",
+    "k": "s48",
+    "ka": "კვადროციკლი, მოპედი"
+   },
+   {
+    "id": "license_types.3.name",
+    "k": "s49",
+    "ka": "მოტოციკლი"
+   },
+   {
+    "id": "license_types.4.name",
+    "k": "s50",
+    "ka": "მსუბუქი მოტოციკლი"
+   },
+   {
+    "id": "license_types.5.name",
+    "k": "s51",
+    "ka": "საშუალო მოტოციკლი"
+   },
+   {
+    "id": "license_types.6.name",
+    "k": "s52",
+    "ka": "სატვირთო"
+   },
+   {
+    "id": "license_types.7.name",
+    "k": "s53",
+    "ka": "მსუბუქი სატვირთო"
+   },
+   {
+    "id": "license_types.8.name",
+    "k": "s54",
+    "ka": "ავტობუსი"
+   },
+   {
+    "id": "license_types.9.name",
+    "k": "s55",
+    "ka": "მინიბუსი"
+   },
+   {
+    "id": "license_types.10.name",
+    "k": "s56",
+    "ka": "ტრაქტორი"
+   },
+   {
+    "id": "license_types.11.name",
+    "k": "s57",
+    "ka": "თვითმავალი მანქანა"
+   },
+   {
+    "id": "license_types.12.name",
+    "k": "s58",
+    "ka": "ტრამვაი"
+   },
+   {
+    "id": "license_types.13.name",
+    "k": "s59",
+    "ka": "სამხედრო"
+   },
+   {
+    "id": "license_types.14.name",
+    "ctx": "მოპედი"
+   },
+   {
+    "id": "sign_categories.1.name",
+    "ctx": "მაფრთხილებელი"
+   },
+   {
+    "id": "sign_categories.2.name",
+    "ctx": "პრიორიტეტი"
+   },
+   {
+    "id": "sign_categories.3.name",
+    "ctx": "ამკრძალავი"
+   },
+   {
+    "id": "sign_categories.4.name",
+    "ctx": "მიმთითებელი"
+   },
+   {
+    "id": "sign_categories.5.name",
+    "k": "s60",
+    "ka": "განსაკუთრებული მითითების"
+   },
+   {
+    "id": "sign_categories.6.name",
+    "k": "s61",
+    "ka": "სერვისის"
+   },
+   {
+    "id": "sign_categories.7.name",
+    "ctx": "საინფორმაციო"
+   },
+   {
+    "id": "sign_categories.8.name",
+    "k": "s62",
+    "ka": "დამატებითი ინფორმაცია"
+   },
+   {
+    "id": "sign_categories.9.name",
+    "ctx": "შუქნიშანი"
+   },
+   {
+    "id": "sign_categories.10.name",
+    "k": "s63",
+    "ka": "საგზაო მონიშვნები"
+   },
+   {
+    "id": "sign_categories.11.name",
+    "k": "s64",
+    "ka": "თეგეტას ნიშნები"
+   },
+   {
+    "id": "sign_category_notes.1.content",
+    "k": "s65",
+    "ka": "<p>ნიშნები, რომლებიც დაუსახლებელში მეორდება არანაკლებ 50 მეტრში.</p>"
+   },
+   {
+    "id": "sign_category_notes.2.content",
+    "k": "s66",
+    "ka": "<p><strong><span>შენიშვნა:</span></strong></p><p style=\"text-align: justify\"><span>ა) 2.3 და 2.4 ნიშნების მოქმედება ვრცელდება სავალი ნაწილების იმ გადაკვეთაზე, რომლის წინაც დადგმულია სათანადო ნიშანი;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.3.content",
+    "k": "s67",
+    "ka": "<p><strong>შენიშვნა:</strong></p><p><span>ბ) 2.5 და 2.6 ნიშნები იდგმება უშუალოდ გზის ვიწრო უბნის წინ. 2.5 ნიშანი შეიძლება დაიდგას წინასწარ 8.1.1 დაფით.</span></p>"
+   },
+   {
+    "id": "sign_category_notes.4.content",
+    "k": "s68",
+    "ka": "<p>ნიშნების მოქმედება არ ვრცელდება <span>სამარშრუტო სატრანსპორტო საშუალებაზე;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.5.content",
+    "k": "s69",
+    "ka": "<p>ნიშნების მოქმედება არ ვრცელდება <span>სატრანსპორტო საშუალებაზე, რომელიც ემსახურება აღნიშნულ ზონაში მდებარე საწარმოს, ანდა ემსახურება ან ეკუთვნის ამავე ზონაში მცხოვრებ ან მომუშავე პირს. ამ შემთხვევაში სატრანსპორტო საშუალება შედის აღნიშნულ ზონაში და გამოდის იქიდან დანიშნულების ადგილისაკენ უახლოეს გზაჯვარედინზე;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.6.content",
+    "k": "s70",
+    "ka": "<p>ნიშნების მოქმედება არ ვრცელდება <span>იმ სატრანსპორტო საშუალებაზე, რომელსაც მნიშვნელოვნად გამოხატული ან მკვეთრად გამოხატული შეზღუდული შესაძლებლობის სტატუსის მქონე პირი მართავს, ან იმ სატრანსპორტო საშუალებაზე, რომელსაც აღნიშნული პირები გადაჰყავს;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.7.content",
+    "k": "s71",
+    "ka": "<p><strong>შენიშვნა: </strong></p><p><span>ე) 3.16, 3.20, 3.22, 3.24, 3.26–3.30 ნიშნების მოქმედება ვრცელდება სათანადო ნიშნის შემდეგ, ნიშნის დადგმის ადგილიდან უახლოეს გზაჯვარედინამდე, ხოლო დასახლებულ პუნქტში გზაჯვარედინის არარსებობისას – დასახლებული პუნქტის ბოლომდე.</span></p>"
+   },
+   {
+    "id": "sign_category_notes.8.content",
+    "k": "s72",
+    "ka": "<p><span>თ) 3.27 ნიშნის გამოყენება შეიძლება 1.4 მონიშვნასთან, ხოლო 3.28 ნიშნისა – 1.10 მონიშვნასთან ერთად. ამასთანავე, ნიშნების მოქმედების ზონა მონიშვნის ხაზის სიგრძით განისაზღვრება;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.9.content",
+    "k": "s73",
+    "ka": "<p><span>დ) 3.18.1 და 3.18.2 ნიშნების მოქმედება ვრცელდება სავალი ნაწილების იმ გადაკვეთაზე, რომლის წინაც დადგმულია სათანადო ნიშანი;</span></p><p><span>ი) 3.10, 3.27–3.30 ნიშნების მოქმედება ვრცელდება მხოლოდ გზის იმ მხარეს, რომელზედაც ისინია დადგმული.</span></p>"
+   },
+   {
+    "id": "sign_category_notes.10.content",
+    "k": "s74",
+    "ka": "<p><strong><span>შენიშვნა:</span></strong></p><p style=\"text-align: justify\"><span>ა) 4.1.1−4.1.6 ნიშნები რთავს მხოლოდ ისრებით ნაჩვენები მიმართულებებით მოძრაობის ნებას, ხოლო ნიშნები, რომლებიც მარცხნივ მოხვევის ნებას რთავს, მობრუნების უფლებასაც იძლევა.</span></p><p style=\"text-align: justify\"><span>ბ) 4.1.1−4.1.6 ნიშნების მოქმედება ვრცელდება სავალი ნაწილების იმ გადაკვეთაზე, რომლის წინაც დადგმულია სათანადო ნიშანი;</span></p><p style=\"text-align: justify\"><span>გ) 4.1.1−4.1.6 ნიშნების მოქმედება არ ვრცელდება სამარშრუტო სატრანსპორტო საშუალებაზე;</span></p><p style=\"text-align: justify\"><span>დ) 4.1.1 ნიშნის მოქმედება, რომელიც გზის მონაკვეთის დასაწყისშია დადგმული, ვრცელდება უახლოეს გზაჯვარედინამდე.</span></p>"
+   },
+   {
+    "id": "sign_category_notes.11.content",
+    "k": "s75",
+    "ka": "<p><strong><span>შენიშვნა:</span></strong></p><p style=\"text-align: justify\"><span>ა) დამატებითი ინფორმაციის ნიშნები (დაფები) თავსდება უშუალოდ იმ ნიშნის ქვემოთ, რომელთანაც ისინი გამოიყენება. 8.2.2–8.2.4 და 8.13 დაფები თავსდება სათანადო ნიშნის გვერდით, თუ ეს ნიშანი განლაგებულია სავალი ნაწილის, გზისპირის ან ტროტუარის ზემოთ;</span></p>"
+   },
+   {
+    "id": "sign_category_notes.12.content",
+    "k": "s76",
+    "ka": "<p><span>ჰორიზონტალური მონიშვნა (ხაზი, ისარი, წარწერა და სხვა აღნიშვნა სავალ ნაწილზე) თეთრი ფერისაა, გარდა 1.4, 1.10 და 1.17 ხაზებისა, რომლებიც ყვითელი ფერისაა.</span></p>"
+   },
+   {
+    "id": "sign_category_notes.13.content",
+    "k": "s77",
+    "ka": "<p><strong><span>შენიშვნა:</span></strong><span> 1.1–1.11 ჰორიზონტალური მონიშვნების აღსანიშნავად შეიძლება გამოყენებულ იქნეს ტერმინი „გრძივი მონიშვნა\", ხოლო 1.1, 1.3, 1.5, 1.6 და 1.11 ჰორიზონტალური მონიშვნების აღსანიშნავად − ტერმინი „ღერძულა ხაზი\".</span></p>"
+   }
+  ]
+ }
+]

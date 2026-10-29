@@ -2,9 +2,9 @@ import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     ClipboardList,
-    History,
     Home,
     ImageIcon,
+    Layers,
     Settings,
 } from 'lucide-react';
 import {
@@ -15,8 +15,10 @@ import {
     useState,
 } from 'react';
 
+import { LanguageToggle } from '@/components/language-toggle';
 import { SettingsSheet } from '@/components/settings-sheet';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 
@@ -29,17 +31,18 @@ interface MobileLayoutProps {
 const navItems = [
     { id: 'home', label: 'მთავარი', icon: Home, href: '/dashboard' },
     { id: 'test', label: 'ტესტი', icon: ClipboardList, href: '/test' },
-    { id: 'history', label: 'ისტორია', icon: History, href: '/test/history' },
-    { id: 'tickets', label: 'ბილეთები', icon: BookOpen, href: '/questions' },
+    { id: 'topics', label: 'თემები', icon: Layers, href: '/topics' },
+    { id: 'rules', label: 'წესები', icon: BookOpen, href: '/rules' },
     { id: 'signs', label: 'ნიშნები', icon: ImageIcon, href: '/signs' },
 ];
 
 function getActiveTab(path: string): string {
     if (path.startsWith('/dashboard') || path === '/') return 'home';
-    if (path.startsWith('/test/history')) return 'history';
+    if (path.startsWith('/test/history')) return 'home';
     if (path.startsWith('/test')) return 'test';
-    if (path.startsWith('/questions') || path.startsWith('/tickets'))
-        return 'tickets';
+    if (path.startsWith('/topics') || path.startsWith('/questions'))
+        return 'topics';
+    if (path.startsWith('/rules')) return 'rules';
     if (path.startsWith('/signs')) return 'signs';
     return 'home';
 }
@@ -48,6 +51,8 @@ export default function MobileLayout({
     children,
     title = 'მართვის მოწმობა',
 }: MobileLayoutProps) {
+    const { t } = useLanguage();
+
     const { url, props } = usePage<SharedData>();
     const isNative = props.platform === 'native';
     const activeTab = getActiveTab(url);
@@ -127,15 +132,20 @@ export default function MobileLayout({
                 across a 1440px window. */}
             <header className="flex h-[calc(var(--inset-top)+3.5rem)] flex-none items-center border-b bg-background/95 pt-[var(--inset-top)] pr-[calc(var(--inset-right)+1rem)] pl-[calc(var(--inset-left)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
-                    <h1 className="text-lg font-semibold">{title}</h1>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setSettingsOpen(true)}
-                    >
-                        <Settings className="h-5 w-5" />
-                        <span className="sr-only">პარამეტრები</span>
-                    </Button>
+                    <h1 className="truncate text-lg font-semibold">
+                        {t(title)}
+                    </h1>
+                    <div className="flex shrink-0 items-center gap-1">
+                        <LanguageToggle />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSettingsOpen(true)}
+                        >
+                            <Settings className="h-5 w-5" />
+                            <span className="sr-only">{t('პარამეტრები')}</span>
+                        </Button>
+                    </div>
                 </div>
             </header>
 
@@ -156,11 +166,11 @@ export default function MobileLayout({
                     {navItems.map((item) => {
                         const isActive = activeTab === item.id;
                         const Icon = item.icon;
-                        // Dashboard and test pages need fresh data (activeTest), so don't cache them
+                        // Home, test and topics show live progress, so never serve them from the prefetch cache
                         const shouldCache =
                             item.id !== 'home' &&
                             item.id !== 'test' &&
-                            item.id !== 'history';
+                            item.id !== 'topics';
 
                         return (
                             <Link
@@ -182,7 +192,7 @@ export default function MobileLayout({
                                     )}
                                 />
                                 <span className={cn(isActive && 'font-medium')}>
-                                    {item.label}
+                                    {t(item.label)}
                                 </span>
                             </Link>
                         );
@@ -204,7 +214,7 @@ export default function MobileLayout({
                     style={{ bottom: 'calc(5rem + var(--inset-bottom, 0px))' }}
                 >
                     <div className="rounded-full bg-foreground/90 px-4 py-2 text-sm text-background shadow-lg">
-                        გასასვლელად კიდევ ერთხელ დააჭირეთ უკან
+                        {t('გასასვლელად კიდევ ერთხელ დააჭირეთ უკან')}
                     </div>
                 </div>
             )}

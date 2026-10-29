@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 interface SignCardProps {
@@ -13,6 +14,7 @@ interface SignCardProps {
 }
 
 export function SignCard({ sign, isSelected, onClick }: SignCardProps) {
+    const { tc } = useLanguage();
     const [imageLoaded, setImageLoaded] = useState(false);
 
     return (
@@ -31,7 +33,7 @@ export function SignCard({ sign, isSelected, onClick }: SignCardProps) {
                 )}
                 <img
                     src={`/images/signs/${sign.image}`}
-                    alt={sign.title}
+                    alt={tc(sign.title)}
                     loading="lazy"
                     decoding="async"
                     onLoad={() => setImageLoaded(true)}
@@ -42,7 +44,7 @@ export function SignCard({ sign, isSelected, onClick }: SignCardProps) {
                 />
             </div>
             <span className="line-clamp-2 w-full overflow-hidden text-center text-xs break-all text-muted-foreground">
-                {sign.title}
+                {tc(sign.title)}
             </span>
         </button>
     );

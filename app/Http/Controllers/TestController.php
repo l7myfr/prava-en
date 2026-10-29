@@ -9,6 +9,7 @@ use App\Models\TestResult;
 use App\Models\TestTemplate;
 use App\Models\UserQuestionProgress;
 use App\Support\ExamRules;
+use App\Support\ProgressBackup;
 use App\Support\ReviewPrompt;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -73,6 +74,21 @@ class TestController extends Controller
             $query->where('is_active', true);
         }])->orderBy('id')->get();
 
+        // A test only draws questions of the chosen licence, so the topic
+        // counts it offers must be per licence too, or a topic can promise far
+        // more questions than the test will contain.
+        $categoryCountsByLicense = $licenseTypes->mapWithKeys(fn (LicenseType $licenseType) => [
+            $licenseType->id => Question::query()
+                ->where('is_active', true)
+                ->whereHas('licenseTypes', fn ($q) => $q->whereIn(
+                    'license_types.id',
+                    $licenseType->children->pluck('id')->push($licenseType->id),
+                ))
+                ->selectRaw('question_category_id, count(*) as total')
+                ->groupBy('question_category_id')
+                ->pluck('total', 'question_category_id'),
+        ]);
+
         // Get bookmarked questions count for the user
         $bookmarkedCount = UserQuestionProgress::where('user_id', $user->id)
             ->where('is_bookmarked', true)
@@ -117,6 +133,7 @@ class TestController extends Controller
             ] : null,
             'licenseTypes' => $licenseTypes,
             'categories' => $categories,
+            'categoryCountsByLicense' => $categoryCountsByLicense,
             'bookmarkedCount' => $bookmarkedCount,
             'userDefaults' => [
                 'license_type_id' => $user->default_license_type_id,
@@ -162,6 +179,8 @@ class TestController extends Controller
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'integer|exists:question_categories,id',
             'auto_advance' => 'boolean',
+            'allow_answer_change' => 'boolean',
+            'show_results' => 'boolean',
             'abandon_active' => 'boolean',
         ]);
 
@@ -277,6 +296,9 @@ class TestController extends Controller
                 'category_ids' => $request->category_ids ?? [],
                 'auto_advance' => $request->has('auto_advance') ? $request->boolean('auto_advance') : ($user->test_auto_advance ?? true),
                 'shuffle_seed' => mt_rand() / mt_getrandmax(),
+                // An official mock exam never allows it, like the real exam.
+                'allow_answer_change' => $officialAllowedWrong === null && $request->boolean('allow_answer_change'),
+                'show_results' => $request->boolean('show_results', true),
             ],
             'questions_with_answers' => $questionsWithAnswers,
             'correct_count' => 0,
@@ -387,9 +409,10 @@ class TestController extends Controller
         $questionId = $request->question_id;
         $answerId = $request->answer_id;
 
-        // Check if question already answered
+        // A question can only be answered again when the test allows it
         $answersGiven = $testResult->answers_given ?? [];
-        if (isset($answersGiven[$questionId])) {
+        $previous = $answersGiven[$questionId] ?? null;
+        if ($previous && ! ($testResult->configuration['allow_answer_change'] ?? false)) {
             return response()->json(['error' => 'Question already answered'], 400);
         }
 
@@ -418,9 +441,9 @@ class TestController extends Controller
         $skippedIds = $testResult->skipped_question_ids ?? [];
         $skippedIds = array_values(array_filter($skippedIds, fn ($id) => $id !== $questionId));
 
-        // Update counts
-        $correctCount = $testResult->correct_count + ($isCorrect ? 1 : 0);
-        $wrongCount = $testResult->wrong_count + ($isCorrect ? 0 : 1);
+        // Update counts, taking back the previous answer when it is changed
+        $correctCount = $testResult->correct_count + ($isCorrect ? 1 : 0) - ($previous && $previous['is_correct'] ? 1 : 0);
+        $wrongCount = $testResult->wrong_count + ($isCorrect ? 0 : 1) - ($previous && ! $previous['is_correct'] ? 1 : 0);
 
         // Update user's question progress
         $progress = UserQuestionProgress::firstOrCreate(
@@ -433,7 +456,11 @@ class TestController extends Controller
         } else {
             $progress->increment('times_wrong');
         }
-        $progress->update(['last_answered_at' => now()]);
+        $progress->update([
+            'last_answered_at' => now(),
+            'last_answer_correct' => $isCorrect,
+            'last_answer_id' => $answerId,
+        ]);
 
         // Check if test should be marked as failed
         $allowedWrong = $testResult->getAllowedWrong();
@@ -446,6 +473,8 @@ class TestController extends Controller
             'wrong_count' => $wrongCount,
             'remaining_time_seconds' => $request->remaining_time,
         ]);
+
+        ProgressBackup::saveSoon();
 
         // Get correct answer for response
         $correctAnswer = collect($question['answers'])->firstWhere('is_correct', true);
@@ -591,6 +620,8 @@ class TestController extends Controller
             'time_taken_seconds' => $timeTaken,
             'remaining_time_seconds' => $remainingTime,
         ]);
+
+        ProgressBackup::save();
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -761,6 +792,8 @@ class TestController extends Controller
             'failure_threshold' => $config['failure_threshold'] ?? 10,
             'category_ids' => $config['category_ids'] ?? [],
             'auto_advance' => (bool) ($config['auto_advance'] ?? true),
+            'allow_answer_change' => (bool) ($config['allow_answer_change'] ?? false),
+            'show_results' => (bool) ($config['show_results'] ?? true),
             'abandon_active' => $request->boolean('abandon_active'),
         ]);
 

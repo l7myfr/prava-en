@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/hooks/use-language';
 import {
     buildAnswerStates,
     getCorrectAnswers,
@@ -40,6 +41,8 @@ interface Props {
 }
 
 export default function TestResults({ testResult, reviewPrompt }: Props) {
+    const { t } = useLanguage();
+
     const [showTemplateDialog, setShowTemplateDialog] = useState(false);
     const [templateName, setTemplateName] = useState('');
 
@@ -123,7 +126,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
             id="main-scroll-container"
             className="h-screen overflow-y-auto bg-background"
         >
-            <Head title="შედეგები" />
+            <Head title={t('შედეგები')} />
 
             {/* Result Banner */}
             <TestResultBanner
@@ -148,7 +151,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                     onClick={handleRedoSame}
                 >
                     <RefreshCw className="h-4 w-4" />
-                    იგივე ტესტი
+                    {t('იგივე ტესტი')}
                 </Button>
                 <Button
                     variant="outline"
@@ -157,7 +160,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                     onClick={handleNewSimilar}
                 >
                     <Copy className="h-4 w-4" />
-                    მსგავსი ტესტი
+                    {t('მსგავსი ტესტი')}
                 </Button>
                 <Button
                     variant="outline"
@@ -166,11 +169,11 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                     onClick={() => setShowTemplateDialog(true)}
                 >
                     <Save className="h-4 w-4" />
-                    შაბლონად
+                    {t('შაბლონად')}
                 </Button>
                 <Button size="sm" className="gap-2" onClick={handleGoHome}>
                     <Home className="h-4 w-4" />
-                    მთავარი
+                    {t('მთავარი')}
                 </Button>
             </div>
 
@@ -183,16 +186,20 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             className="gap-1 px-2 text-xs data-[state=active]:text-red-600 sm:gap-2 sm:px-3 sm:text-sm dark:data-[state=active]:text-red-400"
                         >
                             <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            <span className="hidden sm:inline">არასწორი</span> (
-                            {wrongAnswers.length})
+                            <span className="hidden sm:inline">
+                                {t('არასწორი')}
+                            </span>{' '}
+                            ({wrongAnswers.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="correct"
                             className="gap-1 px-2 text-xs data-[state=active]:text-green-600 sm:gap-2 sm:px-3 sm:text-sm dark:data-[state=active]:text-green-400"
                         >
                             <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            <span className="hidden sm:inline">სწორი</span> (
-                            {correctAnswers.length})
+                            <span className="hidden sm:inline">
+                                {t('სწორი')}
+                            </span>{' '}
+                            ({correctAnswers.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="skipped"
@@ -200,7 +207,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                         >
                             <MinusCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             <span className="hidden sm:inline">
-                                გამოტოვებული
+                                {t('გამოტოვებული')}
                             </span>{' '}
                             ({skippedQuestions.length})
                         </TabsTrigger>
@@ -211,7 +218,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={wrongAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="არასწორი პასუხები არ არის"
+                            emptyMessage={t('არასწორი პასუხები არ არის')}
                         />
                     </TabsContent>
 
@@ -220,7 +227,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={correctAnswers}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="სწორი პასუხები არ არის"
+                            emptyMessage={t('სწორი პასუხები არ არის')}
                         />
                     </TabsContent>
 
@@ -229,7 +236,7 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             questions={skippedQuestions}
                             answerStates={answerStates}
                             shuffleSeed={shuffleSeed}
-                            emptyMessage="გამოტოვებული კითხვები არ არის"
+                            emptyMessage={t('გამოტოვებული კითხვები არ არის')}
                         />
                     </TabsContent>
                 </Tabs>
@@ -248,21 +255,21 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>შაბლონის შენახვა</DialogTitle>
+                        <DialogTitle>{t('შაბლონის შენახვა')}</DialogTitle>
                         <DialogDescription>
-                            შეინახეთ ამ ტესტის პარამეტრები შაბლონად
+                            {t('შეინახეთ ამ ტესტის პარამეტრები შაბლონად')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="templateName">სახელი</Label>
+                            <Label htmlFor="templateName">{t('სახელი')}</Label>
                             <Input
                                 id="templateName"
                                 value={templateName}
                                 onChange={(e) =>
                                     setTemplateName(e.target.value)
                                 }
-                                placeholder="მაგ: B კატეგორია - სრული"
+                                placeholder={t('მაგ: B კატეგორია - სრული')}
                             />
                         </div>
                     </div>
@@ -271,13 +278,13 @@ export default function TestResults({ testResult, reviewPrompt }: Props) {
                             variant="outline"
                             onClick={() => setShowTemplateDialog(false)}
                         >
-                            გაუქმება
+                            {t('გაუქმება')}
                         </Button>
                         <Button
                             onClick={handleSaveTemplate}
                             disabled={!templateName.trim()}
                         >
-                            შენახვა
+                            {t('შენახვა')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

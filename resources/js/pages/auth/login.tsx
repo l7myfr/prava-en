@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /**
@@ -21,6 +22,8 @@ export default function Login({
     canRegister?: boolean;
     status?: string;
 }) {
+    const { t } = useLanguage();
+
     const form = useForm({
         email: '',
         password: '',
@@ -33,8 +36,11 @@ export default function Login({
     };
 
     return (
-        <AuthLayout title="შესვლა" description="შეიყვანე ელფოსტა და პაროლი">
-            <Head title="შესვლა" />
+        <AuthLayout
+            title={t('შესვლა')}
+            description={t('შეიყვანე ელფოსტა და პაროლი')}
+        >
+            <Head title={t('შესვლა')} />
 
             {status && (
                 <div className="text-center text-sm font-medium text-green-600">
@@ -44,7 +50,7 @@ export default function Login({
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="email">ელფოსტა</Label>
+                    <Label htmlFor="email">{t('ელფოსტა')}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -59,13 +65,13 @@ export default function Login({
 
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="password">პაროლი</Label>
+                        <Label htmlFor="password">{t('პაროლი')}</Label>
                         {canResetPassword && (
                             <Link
                                 href="/forgot-password"
                                 className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                             >
-                                დაგავიწყდა პაროლი?
+                                {t('დაგავიწყდა პაროლი?')}
                             </Link>
                         )}
                     </div>
@@ -91,7 +97,7 @@ export default function Login({
                         }
                     />
                     <Label htmlFor="remember" className="font-normal">
-                        დამახსოვრება
+                        {t('დამახსოვრება')}
                     </Label>
                 </div>
 
@@ -100,18 +106,18 @@ export default function Login({
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'იტვირთება...' : 'შესვლა'}
+                    {form.processing ? t('იტვირთება...') : t('შესვლა')}
                 </Button>
             </form>
 
             {canRegister && (
                 <p className="text-center text-sm text-muted-foreground">
-                    არ გაქვს ანგარიში?{' '}
+                    {t('არ გაქვს ანგარიში?')}{' '}
                     <Link
                         href="/register"
                         className="underline underline-offset-4"
                     >
-                        რეგისტრაცია
+                        {t('რეგისტრაცია')}
                     </Link>
                 </p>
             )}

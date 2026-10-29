@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /**
@@ -12,6 +13,8 @@ import AuthLayout from '@/layouts/auth-layout';
  * history built up so far. Web build only: literal paths, see auth/welcome.tsx.
  */
 export default function GuestUpgrade() {
+    const { t } = useLanguage();
+
     const form = useForm({
         name: '',
         email: '',
@@ -28,14 +31,14 @@ export default function GuestUpgrade() {
 
     return (
         <AuthLayout
-            title="შედეგების შენახვა"
-            description="შექმენი ანგარიში და შეინახე მიმდინარე პროგრესი"
+            title={t('შედეგების შენახვა')}
+            description={t('შექმენი ანგარიში და შეინახე მიმდინარე პროგრესი')}
         >
-            <Head title="შედეგების შენახვა" />
+            <Head title={t('შედეგების შენახვა')} />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="name">სახელი</Label>
+                    <Label htmlFor="name">{t('სახელი')}</Label>
                     <Input
                         id="name"
                         name="name"
@@ -48,7 +51,7 @@ export default function GuestUpgrade() {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="email">ელფოსტა</Label>
+                    <Label htmlFor="email">{t('ელფოსტა')}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -61,7 +64,7 @@ export default function GuestUpgrade() {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="password">პაროლი</Label>
+                    <Label htmlFor="password">{t('პაროლი')}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -77,7 +80,7 @@ export default function GuestUpgrade() {
 
                 <div className="grid gap-2">
                     <Label htmlFor="password_confirmation">
-                        გაიმეორე პაროლი
+                        {t('გაიმეორე პაროლი')}
                     </Label>
                     <Input
                         id="password_confirmation"
@@ -100,7 +103,7 @@ export default function GuestUpgrade() {
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'ინახება...' : 'ანგარიშის შექმნა'}
+                    {form.processing ? t('ინახება...') : t('ანგარიშის შექმნა')}
                 </Button>
             </form>
 
@@ -109,7 +112,7 @@ export default function GuestUpgrade() {
                     href="/dashboard"
                     className="underline underline-offset-4"
                 >
-                    მოგვიანებით
+                    {t('მოგვიანებით')}
                 </Link>
             </p>
         </AuthLayout>

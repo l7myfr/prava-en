@@ -7,6 +7,7 @@ use App\Models\Question;
 use App\Models\QuestionCategory;
 use App\Models\Sign;
 use App\Models\UserQuestionProgress;
+use App\Support\ProgressBackup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -190,8 +191,27 @@ class QuestionBrowserController extends Controller
             });
         }
 
+        $query->orderBy('questions.id');
+
+        // Opened from a topic: start on the page holding the first question
+        // not answered yet, so practice carries on where it stopped.
+        $page = null;
+        $resumeQuestionId = null;
+        if ($user && $request->boolean('resume') && ! $request->has('page')) {
+            $answeredIds = UserQuestionProgress::where('user_id', $user->id)
+                ->whereNotNull('last_answer_id')
+                ->pluck('question_id')
+                ->flip();
+            $orderedIds = (clone $query)->pluck('questions.id');
+            $position = $orderedIds->search(fn (int $id) => ! $answeredIds->has($id));
+            if ($position !== false) {
+                $page = intdiv($position, $perPage) + 1;
+                $resumeQuestionId = $orderedIds[$position];
+            }
+        }
+
         // Get paginated results
-        $questions = $query->paginate($perPage)->withQueryString();
+        $questions = $query->paginate($perPage, ['*'], 'page', $page)->withQueryString();
 
         // Load user progress for questions on current page
         $userProgress = [];
@@ -235,6 +255,7 @@ class QuestionBrowserController extends Controller
         return Inertia::render('questions/index', [
             'questions' => $questions,
             'userProgress' => $userProgress,
+            'resumeQuestionId' => $resumeQuestionId,
             'licenseTypes' => $licenseTypes,
             'categories' => $categories,
             'categoryCounts' => $categoryCounts,
@@ -287,7 +308,13 @@ class QuestionBrowserController extends Controller
             $progress->increment('times_wrong');
         }
 
-        $progress->update(['last_answered_at' => now()]);
+        $progress->update([
+            'last_answered_at' => now(),
+            'last_answer_correct' => $isCorrect,
+            'last_answer_id' => $answer->id,
+        ]);
+
+        ProgressBackup::saveSoon();
 
         // Get correct answer for response
         $correctAnswer = $question->answers()->where('is_correct', true)->first();

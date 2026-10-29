@@ -11,6 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useLanguage } from '@/hooks/use-language';
 import { useOpenExternal } from '@/hooks/use-open-external';
 
 interface Props {
@@ -31,6 +32,8 @@ interface Props {
  * so nothing here depends on it.
  */
 export function ReviewPrompt({ storeUrl }: Props) {
+    const { t } = useLanguage();
+
     const [isOpen, setIsOpen] = useState(true);
     const openExternal = useOpenExternal();
 
@@ -74,19 +77,21 @@ export function ReviewPrompt({ storeUrl }: Props) {
                         <Star className="h-6 w-6 text-amber-500" />
                     </div>
                     <DialogTitle className="text-center">
-                        მოგწონთ აპლიკაცია?
+                        {t('მოგწონთ აპლიკაცია?')}
                     </DialogTitle>
                     <DialogDescription className="text-center">
-                        შეაფასეთ Google Play-ზე და დაგვეხმარეთ გაუმჯობესებაში
+                        {t(
+                            'შეაფასეთ Google Play-ზე და დაგვეხმარეთ გაუმჯობესებაში',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="gap-2 sm:justify-center">
                     <Button variant="outline" onClick={retire}>
-                        არა, გმადლობთ
+                        {t('არა, გმადლობთ')}
                     </Button>
                     <Button onClick={handleRate} className="gap-2">
                         <Star className="h-4 w-4" />
-                        შეფასება
+                        {t('შეფასება')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

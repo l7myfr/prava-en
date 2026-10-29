@@ -3,14 +3,17 @@
 use App\Http\Controllers\Auth\GuestSessionController;
 use App\Http\Controllers\Auth\GuestUpgradeController;
 use App\Http\Controllers\Auth\WebEntryController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\QuestionBrowserController;
 use App\Http\Controllers\ReviewPromptController;
+use App\Http\Controllers\RulesController;
 use App\Http\Controllers\SignsController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestHistoryController;
 use App\Http\Controllers\TestTemplateController;
+use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserSelectionController;
 use App\Support\NativeMediaFile;
 use App\Support\Platform;
@@ -37,6 +40,15 @@ if (Platform::isWeb()) {
     Route::post('/login', [UserSelectionController::class, 'login'])->name('login');
     Route::post('/register', [UserSelectionController::class, 'store'])->name('register');
 }
+// Progress backup in Downloads, which survives uninstalling. Device only:
+// restoring replaces every profile, and needs no sign-in because it is
+// used on a fresh install before any profile exists.
+Route::middleware('native.only')->group(function () {
+    Route::post('backup/save', [BackupController::class, 'save'])->name('backup.save');
+    Route::post('backup/pick', [BackupController::class, 'pick'])->name('backup.pick');
+    Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+});
+
 Route::get('/auth/logout', function () {
     // Revoke all Sanctum tokens for the user
     if (auth()->check()) {
@@ -110,6 +122,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('questions', [QuestionBrowserController::class, 'index'])->name('questions.index');
     Route::post('questions/{question}/answer', [QuestionBrowserController::class, 'answer'])->name('questions.answer');
     Route::post('questions/{question}/bookmark', [QuestionBrowserController::class, 'bookmark'])->name('questions.bookmark');
+
+    // Topics (practise and track progress per question category)
+    Route::get('topics', [TopicController::class, 'index'])->name('topics.index');
+    Route::post('topics/{questionCategory}/reset', [TopicController::class, 'reset'])->name('topics.reset');
+
+    // Rules (illustrated study notes)
+    Route::get('rules', [RulesController::class, 'index'])->name('rules.index');
+    Route::get('rules/{chapter}', [RulesController::class, 'show'])->name('rules.show');
 
     // Signs Browser
     Route::get('signs', [SignsController::class, 'index'])->name('signs.index');

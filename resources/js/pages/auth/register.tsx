@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /**
@@ -12,6 +13,8 @@ import AuthLayout from '@/layouts/auth-layout';
  * imports: these routes only exist when APP_PLATFORM=web.
  */
 export default function Register() {
+    const { t } = useLanguage();
+
     const form = useForm({
         name: '',
         email: '',
@@ -28,14 +31,14 @@ export default function Register() {
 
     return (
         <AuthLayout
-            title="რეგისტრაცია"
-            description="შექმენი ანგარიში შედეგების შესანახად"
+            title={t('რეგისტრაცია')}
+            description={t('შექმენი ანგარიში შედეგების შესანახად')}
         >
-            <Head title="რეგისტრაცია" />
+            <Head title={t('რეგისტრაცია')} />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="name">სახელი</Label>
+                    <Label htmlFor="name">{t('სახელი')}</Label>
                     <Input
                         id="name"
                         name="name"
@@ -48,7 +51,7 @@ export default function Register() {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="email">ელფოსტა</Label>
+                    <Label htmlFor="email">{t('ელფოსტა')}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -61,7 +64,7 @@ export default function Register() {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="password">პაროლი</Label>
+                    <Label htmlFor="password">{t('პაროლი')}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -77,7 +80,7 @@ export default function Register() {
 
                 <div className="grid gap-2">
                     <Label htmlFor="password_confirmation">
-                        გაიმეორე პაროლი
+                        {t('გაიმეორე პაროლი')}
                     </Label>
                     <Input
                         id="password_confirmation"
@@ -100,14 +103,14 @@ export default function Register() {
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'იტვირთება...' : 'რეგისტრაცია'}
+                    {form.processing ? t('იტვირთება...') : t('რეგისტრაცია')}
                 </Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground">
-                უკვე გაქვს ანგარიში?{' '}
+                {t('უკვე გაქვს ანგარიში?')}{' '}
                 <Link href="/login" className="underline underline-offset-4">
-                    შესვლა
+                    {t('შესვლა')}
                 </Link>
             </p>
         </AuthLayout>

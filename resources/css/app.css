@@ -158,3 +158,79 @@
         overflow: hidden;
     }
 }
+
+/* Rules chapters: HTML generated from the study notes. */
+@layer components {
+    .rules-content {
+        @apply text-[15px] leading-relaxed;
+    }
+    .rules-content h2 {
+        @apply mt-7 mb-2 text-lg font-semibold;
+    }
+    .rules-content h3 {
+        @apply mt-5 mb-1.5 text-base font-semibold;
+    }
+    .rules-content h4 {
+        @apply mt-4 mb-1 font-semibold;
+    }
+    .rules-content p {
+        @apply my-2;
+    }
+    .rules-content ul {
+        @apply my-2 list-disc space-y-1 pl-5;
+    }
+    .rules-content ol {
+        @apply my-2 list-decimal space-y-1 pl-5;
+    }
+    .rules-content strong {
+        @apply font-semibold text-foreground;
+    }
+    .rules-content a {
+        @apply font-medium text-primary underline underline-offset-2;
+    }
+    .rules-content blockquote {
+        @apply my-3 rounded-r-lg border-l-4 border-primary/60 bg-muted/50 px-3 py-2;
+    }
+    .rules-content code {
+        @apply rounded bg-muted px-1 py-0.5 text-[0.9em];
+    }
+    .rules-content hr {
+        @apply my-6 border-border;
+    }
+    .rules-content table {
+        @apply my-3 block w-full overflow-x-auto rounded-lg border text-sm;
+        border-collapse: collapse;
+    }
+    .rules-content th {
+        @apply bg-muted px-2.5 py-2 text-left align-bottom font-semibold;
+    }
+    .rules-content td {
+        @apply border-t px-2.5 py-2 align-top;
+    }
+    .rules-content img {
+        @apply inline-block cursor-zoom-in rounded-md bg-white p-1 align-middle;
+    }
+    .rules-content p > img:only-child,
+    .rules-content > img {
+        @apply mx-auto my-3 block max-w-full p-2 shadow-sm;
+    }
+    .rules-content td img {
+        @apply h-auto max-h-16 min-w-12;
+    }
+    .rules-content img.rules-sign {
+        @apply mr-1 inline-block h-[1.75em] w-[1.75em] rounded-sm object-contain p-px align-[-0.45em] shadow-none;
+    }
+    .rules-mermaid {
+        @apply my-4 flex justify-center overflow-x-auto rounded-lg border bg-card p-3;
+    }
+    .rules-mermaid {
+        cursor: zoom-in;
+    }
+    /* Mermaid sets a pixel max-width inline; fit the column instead and
+       let the zoom viewer show detail. */
+    .rules-mermaid svg {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto;
+    }
+}

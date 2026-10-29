@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ZoomableImage } from '@/components/zoomable-image';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 interface Answer {
@@ -58,6 +60,11 @@ interface QuestionCardProps {
     onInfoClick: (question: Question) => void;
     /** Test mode: answers are disabled, info button hidden until answered */
     testMode?: boolean;
+    /** Lets an answered question be answered again (practice). */
+    allowAnswerChange?: boolean;
+    /** Show only which answer was picked, not whether it was right. */
+    hideResult?: boolean;
+    id?: string;
 }
 
 export function QuestionCard({
@@ -71,7 +78,12 @@ export function QuestionCard({
     onBookmark,
     onInfoClick,
     testMode = false,
+    allowAnswerChange = false,
+    hideResult = false,
+    id,
 }: QuestionCardProps) {
+    const { t, tc } = useLanguage();
+
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const isAnswered = !!answerState?.selectedAnswerId;
@@ -80,7 +92,8 @@ export function QuestionCard({
         question.description ||
         question.image_custom;
     // In testMode, show info button only after answered
-    const showInfoButton = hasInfoContent && (!testMode || isAnswered);
+    const showInfoButton =
+        hasInfoContent && (!testMode || isAnswered) && !hideResult;
 
     // Shuffle answers deterministically based on seed + question.id
     const displayAnswers = useMemo(() => {
@@ -104,6 +117,12 @@ export function QuestionCard({
         if (!answerState)
             return 'border-border hover:border-primary hover:bg-accent disabled:hover:border-border disabled:hover:bg-transparent';
 
+        if (hideResult) {
+            return answer.id === answerState.selectedAnswerId
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:border-primary hover:bg-accent disabled:hover:border-border disabled:hover:bg-transparent';
+        }
+
         if (answer.id === answerState.correctAnswerId) {
             return 'border-green-500 bg-green-50 dark:bg-green-950';
         }
@@ -118,7 +137,11 @@ export function QuestionCard({
 
     return (
         <Card
-            className={cn('py-0', question.is_active === false && 'opacity-60')}
+            id={id}
+            className={cn(
+                'scroll-mt-4 py-0',
+                question.is_active === false && 'opacity-60',
+            )}
         >
             <CardContent className="p-4">
                 {/* Question Header */}
@@ -133,7 +156,7 @@ export function QuestionCard({
                                 <TriangleAlert className="h-3.5 w-3.5 text-red-500" />
                             )}
                             <span className="text-xs text-muted-foreground">
-                                {question.question_category.name}
+                                {tc(question.question_category.name)}
                             </span>
                         </span>
                     </div>
@@ -171,9 +194,9 @@ export function QuestionCard({
                         {!imageLoaded && (
                             <div className="aspect-[16/10] w-full animate-pulse bg-muted" />
                         )}
-                        <img
+                        <ZoomableImage
                             src={`/images/ticket_images_webp/${question.image}`}
-                            alt="კითხვის სურათი"
+                            alt={t('კითხვის სურათი')}
                             loading="lazy"
                             decoding="async"
                             onLoad={() => setImageLoaded(true)}
@@ -189,12 +212,12 @@ export function QuestionCard({
                 {question.image && !question.is_short_image ? (
                     <div className="relative z-1 mx-0 -mt-[12%] mb-4 rounded bg-[#141414]/65 px-4 py-3">
                         <p className="text-center text-sm leading-snug font-medium text-white">
-                            {question.question}
+                            {tc(question.question)}
                         </p>
                     </div>
                 ) : (
                     <p className="mb-4 text-base leading-relaxed font-medium">
-                        {question.question}
+                        {tc(question.question)}
                     </p>
                 )}
 
@@ -209,7 +232,11 @@ export function QuestionCard({
                         <button
                             key={answer.id}
                             onClick={() => onAnswer(question, answer.id)}
-                            disabled={isAnswered || isSubmitting || testMode}
+                            disabled={
+                                (isAnswered && !allowAnswerChange) ||
+                                isSubmitting ||
+                                testMode
+                            }
                             className={cn(
                                 'flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors',
                                 getAnswerClassName(answer),
@@ -218,11 +245,13 @@ export function QuestionCard({
                             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs">
                                 {answerIndex + 1}
                             </span>
-                            <span className="text-sm">{answer.text}</span>
-                            {answerState?.correctAnswerId === answer.id && (
-                                <Check className="ml-auto h-5 w-5 shrink-0 text-green-600" />
-                            )}
-                            {answerState?.selectedAnswerId === answer.id &&
+                            <span className="text-sm">{tc(answer.text)}</span>
+                            {!hideResult &&
+                                answerState?.correctAnswerId === answer.id && (
+                                    <Check className="ml-auto h-5 w-5 shrink-0 text-green-600" />
+                                )}
+                            {!hideResult &&
+                                answerState?.selectedAnswerId === answer.id &&
                                 !answerState?.isCorrect && (
                                     <X className="ml-auto h-5 w-5 shrink-0 text-red-600" />
                                 )}

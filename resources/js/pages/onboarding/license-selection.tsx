@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 interface LicenseTypeChild {
@@ -67,6 +68,8 @@ const getLicenseDescription = (code: string) => {
 };
 
 export default function LicenseSelection({ licenseTypes }: Props) {
+    const { t } = useLanguage();
+
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -89,7 +92,7 @@ export default function LicenseSelection({ licenseTypes }: Props) {
 
     return (
         <div className="flex min-h-screen flex-col bg-background">
-            <Head title="აირჩიეთ კატეგორია" />
+            <Head title={t('აირჩიეთ კატეგორია')} />
 
             {/* Header */}
             <div
@@ -100,11 +103,12 @@ export default function LicenseSelection({ licenseTypes }: Props) {
                     <Car className="h-8 w-8 text-primary" />
                 </div>
                 <h1 className="text-2xl font-bold">
-                    აირჩიეთ მართვის მოწმობის კატეგორია
+                    {t('აირჩიეთ მართვის მოწმობის კატეგორია')}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                    ეს იქნება თქვენი ნაგულისხმევი კატეგორია ტესტებისთვის.
-                    შეგიძლიათ შეცვალოთ მოგვიანებით პარამეტრებში.
+                    {t(
+                        'ეს იქნება თქვენი ნაგულისხმევი კატეგორია ტესტებისთვის. შეგიძლიათ შეცვალოთ მოგვიანებით პარამეტრებში.',
+                    )}
                 </p>
             </div>
 
@@ -155,7 +159,7 @@ export default function LicenseSelection({ licenseTypes }: Props) {
 
                                     {/* Description */}
                                     <div className="text-xs text-muted-foreground">
-                                        {getLicenseDescription(license.code)}
+                                        {t(getLicenseDescription(license.code))}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -175,7 +179,7 @@ export default function LicenseSelection({ licenseTypes }: Props) {
                     disabled={!selectedId || isSubmitting}
                     onClick={handleContinue}
                 >
-                    {isSubmitting ? 'მიმდინარეობს...' : 'გაგრძელება'}
+                    {isSubmitting ? t('მიმდინარეობს...') : t('გაგრძელება')}
                 </Button>
             </div>
         </div>

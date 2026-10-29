@@ -28,7 +28,9 @@ import {
     On,
     SecureStorage,
 } from '#nativephp';
+import { BackupActions } from '@/components/backup-actions';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
+import { useLanguage } from '@/hooks/use-language';
 import { useOpenExternal } from '@/hooks/use-open-external';
 import { cn } from '@/lib/utils';
 import { logout } from '@/routes/auth';
@@ -49,6 +51,7 @@ import {
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
+
 
 interface SettingsSheetProps {
     open: boolean;
@@ -219,6 +222,8 @@ function LicenseTypeSelector({
     selectedId: number | null | undefined;
     userName: string;
 }) {
+    const { t } = useLanguage();
+
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
@@ -252,15 +257,17 @@ function LicenseTypeSelector({
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-muted-foreground">
-                    კატეგორია
+                    {t('კატეგორია')}
                 </h4>
                 {saving && (
                     <span className="text-xs text-muted-foreground">
-                        ინახება...
+                        {t('ინახება...')}
                     </span>
                 )}
                 {saved && (
-                    <span className="text-xs text-green-600">შენახულია</span>
+                    <span className="text-xs text-green-600">
+                        {t('შენახულია')}
+                    </span>
                 )}
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -322,6 +329,8 @@ function MainView({
     onNavigate: (view: SettingsView) => void;
     onClose: () => void;
 }) {
+    const { t } = useLanguage();
+
     const { licenseTypes, platform } = usePage<SharedData>().props;
     const openExternal = useOpenExternal();
 
@@ -351,7 +360,7 @@ function MainView({
     return (
         <div className="flex h-full flex-col">
             <SheetHeader className="flex-row items-center gap-3 border-b px-4 pb-4 pl-14">
-                <SheetTitle className="text-xl">პარამეტრები</SheetTitle>
+                <SheetTitle className="text-xl">{t('პარამეტრები')}</SheetTitle>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto">
@@ -377,7 +386,7 @@ function MainView({
                             {user.name}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            პროფილის რედაქტირება
+                            {t('პროფილის რედაქტირება')}
                         </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -395,7 +404,7 @@ function MainView({
                 {/* Theme section */}
                 <div className="border-t px-4 py-4">
                     <h4 className="mb-3 text-sm font-medium text-muted-foreground">
-                        თემა
+                        {t('თემა')}
                     </h4>
                     <ThemeToggle />
                 </div>
@@ -410,14 +419,16 @@ function MainView({
                 >
                     <ShieldCheck className="h-5 w-5 text-primary" />
                     <div className="min-w-0 flex-1 text-left">
-                        <span>შედეგების შენახვა</span>
+                        <span>{t('შედეგების შენახვა')}</span>
                         <p className="text-xs text-muted-foreground">
-                            შექმენი ანგარიში
+                            {t('შექმენი ანგარიში')}
                         </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
             )}
+
+            {platform === 'native' && <BackupActions className="border-t" />}
 
             {/* Rate the app. Always available on the device, unlike the
                 one-shot prompt on the results screen, so anyone who dismissed
@@ -430,7 +441,7 @@ function MainView({
                 >
                     <Star className="h-5 w-5 text-amber-500" />
                     <div className="min-w-0 flex-1 text-left">
-                        <span>შეფასება</span>
+                        <span>{t('შეფასება')}</span>
                         <p className="text-xs text-muted-foreground">
                             Google Play
                         </p>
@@ -456,7 +467,9 @@ function MainView({
                 </svg>
                 <div className="min-w-0 flex-1 text-left">
                     <span>trongio</span>
-                    <p className="text-xs text-muted-foreground">კონტრიბუცია</p>
+                    <p className="text-xs text-muted-foreground">
+                        {t('კონტრიბუცია')}
+                    </p>
                 </div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -473,8 +486,10 @@ function MainView({
             >
                 <ShieldCheck className="h-5 w-5" />
                 <div className="min-w-0 flex-1 text-left">
-                    <span>კონფიდენციალურობა</span>
-                    <p className="text-xs text-muted-foreground">პოლიტიკა</p>
+                    <span>{t('კონფიდენციალურობა')}</span>
+                    <p className="text-xs text-muted-foreground">
+                        {t('პოლიტიკა')}
+                    </p>
                 </div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -487,7 +502,7 @@ function MainView({
                     onClick={handleLogout}
                 >
                     <LogOut className="h-5 w-5" />
-                    გასვლა
+                    {t('გასვლა')}
                 </Button>
             </div>
         </div>
@@ -504,6 +519,8 @@ function ProfileView({
     onBack: () => void;
     onClose: () => void;
 }) {
+    const { t } = useLanguage();
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     // Always hold the latest name so the native camera/gallery listeners (which
     // capture this render's closure) don't post a stale name and revert a rename.
@@ -881,7 +898,7 @@ function ProfileView({
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
-                <SheetTitle className="text-xl">პროფილი</SheetTitle>
+                <SheetTitle className="text-xl">{t('პროფილი')}</SheetTitle>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto">
@@ -929,10 +946,10 @@ function ProfileView({
                             )}
                         >
                             {savingImage
-                                ? 'იტვირთება...'
+                                ? t('იტვირთება...')
                                 : imageSaved
-                                  ? 'ფოტო შენახულია'
-                                  : 'შეეხეთ ფოტოს შესაცვლელად'}
+                                  ? t('ფოტო შენახულია')
+                                  : t('შეეხეთ ფოტოს შესაცვლელად')}
                         </p>
 
                         {/* Native Image Picker Modal */}
@@ -946,7 +963,7 @@ function ProfileView({
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <p className="mb-4 text-center text-sm text-muted-foreground">
-                                        აირჩიეთ ფოტოს წყარო
+                                        {t('აირჩიეთ ფოტოს წყარო')}
                                     </p>
                                     <Button
                                         type="button"
@@ -955,7 +972,7 @@ function ProfileView({
                                         onClick={handleTakePhoto}
                                     >
                                         <Camera className="h-5 w-5" />
-                                        გადაიღეთ ფოტო
+                                        {t('გადაიღეთ ფოტო')}
                                     </Button>
                                     <Button
                                         type="button"
@@ -964,7 +981,7 @@ function ProfileView({
                                         onClick={handlePickFromGallery}
                                     >
                                         <ImagePlus className="h-5 w-5" />
-                                        აირჩიეთ გალერიიდან
+                                        {t('აირჩიეთ გალერიიდან')}
                                     </Button>
                                     <Button
                                         type="button"
@@ -974,7 +991,7 @@ function ProfileView({
                                             setShowImagePicker(false)
                                         }
                                     >
-                                        გაუქმება
+                                        {t('გაუქმება')}
                                     </Button>
                                 </div>
                             </div>
@@ -983,14 +1000,14 @@ function ProfileView({
 
                     {/* Name field */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">სახელი</Label>
+                        <Label htmlFor="name">{t('სახელი')}</Label>
                         <Input
                             id="name"
                             value={profileForm.data.name}
                             onChange={(e) =>
                                 profileForm.setData('name', e.target.value)
                             }
-                            placeholder="თქვენი სახელი"
+                            placeholder={t('თქვენი სახელი')}
                         />
                         <InputError message={profileForm.errors.name} />
                     </div>
@@ -1001,7 +1018,9 @@ function ProfileView({
                         className="mt-4 w-full"
                         disabled={profileForm.processing}
                     >
-                        {profileForm.processing ? 'იტვირთება...' : 'შენახვა'}
+                        {profileForm.processing
+                            ? t('იტვირთება...')
+                            : t('შენახვა')}
                     </Button>
                     <Transition
                         show={profileForm.recentlySuccessful}
@@ -1011,7 +1030,7 @@ function ProfileView({
                         leaveTo="opacity-0"
                     >
                         <p className="mt-2 text-center text-sm text-green-600">
-                            შენახულია
+                            {t('შენახულია')}
                         </p>
                     </Transition>
                 </form>
@@ -1027,8 +1046,8 @@ function ProfileView({
                             <User className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">
                                 {hasPassword
-                                    ? 'პაროლის შეცვლა'
-                                    : 'პაროლის დამატება'}
+                                    ? t('პაროლის შეცვლა')
+                                    : t('პაროლის დამატება')}
                             </span>
                         </div>
                         <ChevronRight
@@ -1047,7 +1066,7 @@ function ProfileView({
                             {hasPassword && (
                                 <div className="space-y-2">
                                     <Label htmlFor="current_password">
-                                        მიმდინარე პაროლი
+                                        {t('მიმდინარე პაროლი')}
                                     </Label>
                                     <Input
                                         id="current_password"
@@ -1073,7 +1092,9 @@ function ProfileView({
 
                             <div className="space-y-2">
                                 <Label htmlFor="password">
-                                    {hasPassword ? 'ახალი პაროლი' : 'პაროლი'}
+                                    {hasPassword
+                                        ? t('ახალი პაროლი')
+                                        : t('პაროლი')}
                                 </Label>
                                 <Input
                                     id="password"
@@ -1094,7 +1115,7 @@ function ProfileView({
 
                             <div className="space-y-2">
                                 <Label htmlFor="password_confirmation">
-                                    დაადასტურეთ პაროლი
+                                    {t('დაადასტურეთ პაროლი')}
                                 </Label>
                                 <Input
                                     id="password_confirmation"
@@ -1124,10 +1145,10 @@ function ProfileView({
                                 disabled={passwordForm.processing}
                             >
                                 {passwordForm.processing
-                                    ? 'იტვირთება...'
+                                    ? t('იტვირთება...')
                                     : hasPassword
-                                      ? 'პაროლის შეცვლა'
-                                      : 'პაროლის დამატება'}
+                                      ? t('პაროლის შეცვლა')
+                                      : t('პაროლის დამატება')}
                             </Button>
                         </form>
                     )}
@@ -1136,7 +1157,7 @@ function ProfileView({
                 {/* Delete account section */}
                 <div className="border-t px-4 py-4">
                     <h4 className="mb-3 text-sm font-medium text-destructive">
-                        საშიში ზონა
+                        {t('საშიში ზონა')}
                     </h4>
 
                     {deleteStep === 0 ? (
@@ -1146,14 +1167,18 @@ function ProfileView({
                             onClick={handleDeleteConfirm}
                         >
                             <Trash2 className="h-5 w-5" />
-                            ანგარიშის წაშლა
+                            {t('ანგარიშის წაშლა')}
                         </Button>
                     ) : (
                         <div className="space-y-3 rounded-lg bg-destructive/10 p-4">
                             <p className="text-sm text-destructive">
                                 {deleteStep === 1
-                                    ? 'ნამდვილად გსურთ ანგარიშის წაშლა? ეს მოქმედება შეუქცევადია.'
-                                    : 'ბოლო გაფრთხილება! თქვენი ყველა მონაცემი სამუდამოდ წაიშლება.'}
+                                    ? t(
+                                          'ნამდვილად გსურთ ანგარიშის წაშლა? ეს მოქმედება შეუქცევადია.',
+                                      )
+                                    : t(
+                                          'ბოლო გაფრთხილება! თქვენი ყველა მონაცემი სამუდამოდ წაიშლება.',
+                                      )}
                             </p>
                             <div className="flex gap-2">
                                 <Button
@@ -1162,7 +1187,7 @@ function ProfileView({
                                     className="flex-1"
                                     onClick={() => setDeleteStep(0)}
                                 >
-                                    გაუქმება
+                                    {t('გაუქმება')}
                                 </Button>
                                 <Button
                                     variant="destructive"
@@ -1171,8 +1196,8 @@ function ProfileView({
                                     onClick={handleDeleteConfirm}
                                 >
                                     {deleteStep === 1
-                                        ? 'დიახ, წაშლა'
-                                        : 'წაშლა სამუდამოდ'}
+                                        ? t('დიახ, წაშლა')
+                                        : t('წაშლა სამუდამოდ')}
                                 </Button>
                             </div>
                         </div>
@@ -1185,18 +1210,20 @@ function ProfileView({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="text-destructive">
-                            საბოლოო დადასტურება
+                            {t('საბოლოო დადასტურება')}
                         </DialogTitle>
                         <DialogDescription>
                             {hasPassword
-                                ? 'შეიყვანეთ პაროლი ანგარიშის წასაშლელად'
-                                : 'დააჭირეთ ღილაკს ანგარიშის წასაშლელად'}
+                                ? t('შეიყვანეთ პაროლი ანგარიშის წასაშლელად')
+                                : t('დააჭირეთ ღილაკს ანგარიშის წასაშლელად')}
                         </DialogDescription>
                     </DialogHeader>
 
                     {hasPassword && (
                         <div className="space-y-2">
-                            <Label htmlFor="delete_password">პაროლი</Label>
+                            <Label htmlFor="delete_password">
+                                {t('პაროლი')}
+                            </Label>
                             <Input
                                 id="delete_password"
                                 type="password"
@@ -1221,14 +1248,16 @@ function ProfileView({
                                 setDeleteStep(0);
                             }}
                         >
-                            გაუქმება
+                            {t('გაუქმება')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleFinalDelete}
                             disabled={deleteForm.processing}
                         >
-                            {deleteForm.processing ? 'იშლება...' : 'წაშლა'}
+                            {deleteForm.processing
+                                ? t('იშლება...')
+                                : t('წაშლა')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

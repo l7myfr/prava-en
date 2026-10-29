@@ -17,12 +17,14 @@ import {
     On,
     SecureStorage,
 } from '#nativephp';
+import { BackupActions } from '@/components/backup-actions';
 import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import { type SharedData } from '@/types';
 
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -88,7 +90,9 @@ async function apiRequest<T>(
 }
 
 export default function UserSelection({ users }: Props) {
-    const { licenseTypes } = usePage<SharedData>().props;
+    const { t } = useLanguage();
+
+    const { licenseTypes, platform } = usePage<SharedData>().props;
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
@@ -543,7 +547,7 @@ export default function UserSelection({ users }: Props) {
     if (selectedUser) {
         return (
             <>
-                <Head title="პაროლის შეყვანა" />
+                <Head title={t('პაროლის შეყვანა')} />
                 <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
                     <Card className="w-full max-w-sm">
                         <CardHeader className="pb-4">
@@ -554,7 +558,7 @@ export default function UserSelection({ users }: Props) {
                                 className="mb-2 -ml-2 w-fit gap-1"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                უკან
+                                {t('უკან')}
                             </Button>
                             <div className="flex flex-col items-center gap-3">
                                 <Avatar className="h-20 w-20">
@@ -582,7 +586,9 @@ export default function UserSelection({ users }: Props) {
                                 className="space-y-4"
                             >
                                 <div>
-                                    <Label htmlFor="password">პაროლი</Label>
+                                    <Label htmlFor="password">
+                                        {t('პაროლი')}
+                                    </Label>
                                     <Input
                                         id="password"
                                         type="password"
@@ -603,7 +609,7 @@ export default function UserSelection({ users }: Props) {
                                                 );
                                             }
                                         }}
-                                        placeholder="შეიყვანეთ პაროლი"
+                                        placeholder={t('შეიყვანეთ პაროლი')}
                                         autoFocus
                                     />
                                     {loginErrors.error && (
@@ -623,8 +629,8 @@ export default function UserSelection({ users }: Props) {
                                     className="w-full"
                                 >
                                     {isLoginProcessing
-                                        ? 'იტვირთება...'
-                                        : 'შესვლა'}
+                                        ? t('იტვირთება...')
+                                        : t('შესვლა')}
                                 </Button>
                             </form>
                         </CardContent>
@@ -638,7 +644,7 @@ export default function UserSelection({ users }: Props) {
     if (isCreating) {
         return (
             <>
-                <Head title="ახალი მომხმარებელი" />
+                <Head title={t('ახალი მომხმარებელი')} />
                 <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
                     <Card className="w-full max-w-sm">
                         <CardHeader className="pb-2">
@@ -652,7 +658,7 @@ export default function UserSelection({ users }: Props) {
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
                                 <CardTitle className="flex-1 pr-6 text-center text-xl">
-                                    ახალი მომხმარებელი
+                                    {t('ახალი მომხმარებელი')}
                                 </CardTitle>
                             </div>
                         </CardHeader>
@@ -695,7 +701,7 @@ export default function UserSelection({ users }: Props) {
                                 {/* Name */}
                                 <div>
                                     <Label htmlFor="name">
-                                        სახელი / მეტსახელი
+                                        {t('სახელი / მეტსახელი')}
                                     </Label>
                                     <Input
                                         id="name"
@@ -715,7 +721,7 @@ export default function UserSelection({ users }: Props) {
                                                 );
                                             }
                                         }}
-                                        placeholder="შეიყვანეთ სახელი"
+                                        placeholder={t('შეიყვანეთ სახელი')}
                                         autoFocus
                                     />
                                     {registerErrors.name && (
@@ -728,20 +734,21 @@ export default function UserSelection({ users }: Props) {
                                 {/* License Type */}
                                 {licenseTypes.length > 0 && (
                                     <div>
-                                        <Label>კატეგორია</Label>
+                                        <Label>{t('კატეგორია')}</Label>
                                         <LicenseTypeSelect
                                             value={selectedLicenseType}
                                             onValueChange={
                                                 setSelectedLicenseType
                                             }
                                             licenseTypes={licenseTypes}
-                                            placeholder="აირჩიეთ კატეგორია"
-                                            emptyLabel="მოგვიანებით"
+                                            placeholder={t('აირჩიეთ კატეგორია')}
+                                            emptyLabel={t('მოგვიანებით')}
                                             triggerClassName="w-full"
                                         />
                                         <p className="mt-2 text-xs text-muted-foreground">
-                                            აირჩიეთ მოწმობის კატეგორია რომლის
-                                            ჩაბარებასაც გეგმავთ
+                                            {t(
+                                                'აირჩიეთ მოწმობის კატეგორია რომლის ჩაბარებასაც გეგმავთ',
+                                            )}
                                         </p>
                                     </div>
                                 )}
@@ -757,8 +764,8 @@ export default function UserSelection({ users }: Props) {
                                     className="w-full"
                                 >
                                     {isRegisterProcessing
-                                        ? 'იტვირთება...'
-                                        : 'დაწყება'}
+                                        ? t('იტვირთება...')
+                                        : t('დაწყება')}
                                 </Button>
                             </form>
                         </CardContent>
@@ -775,7 +782,7 @@ export default function UserSelection({ users }: Props) {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <p className="mb-4 text-center text-sm text-muted-foreground">
-                                    აირჩიეთ ფოტოს წყარო
+                                    {t('აირჩიეთ ფოტოს წყარო')}
                                 </p>
                                 <Button
                                     type="button"
@@ -784,7 +791,7 @@ export default function UserSelection({ users }: Props) {
                                     onClick={handleTakePhoto}
                                 >
                                     <Camera className="h-5 w-5" />
-                                    გადაიღეთ ფოტო
+                                    {t('გადაიღეთ ფოტო')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -793,7 +800,7 @@ export default function UserSelection({ users }: Props) {
                                     onClick={handlePickFromGallery}
                                 >
                                     <ImagePlus className="h-5 w-5" />
-                                    აირჩიეთ გალერიიდან
+                                    {t('აირჩიეთ გალერიიდან')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -801,7 +808,7 @@ export default function UserSelection({ users }: Props) {
                                     className="mt-2 w-full"
                                     onClick={() => setShowImagePicker(false)}
                                 >
-                                    გაუქმება
+                                    {t('გაუქმება')}
                                 </Button>
                             </div>
                         </div>
@@ -814,16 +821,16 @@ export default function UserSelection({ users }: Props) {
     // Main user selection screen
     return (
         <>
-            <Head title="აირჩიეთ მომხმარებელი" />
+            <Head title={t('აირჩიეთ მომხმარებელი')} />
             <div className="flex min-h-screen flex-col bg-background p-4">
                 <div className="mx-auto w-full max-w-md">
                     {/* Header */}
                     <div className="mb-8 pt-8 text-center">
                         <h1 className="mb-2 text-2xl font-bold">
-                            მართვის მოწმობა
+                            {t('მართვის მოწმობა')}
                         </h1>
                         <p className="text-muted-foreground">
-                            აირჩიეთ მომხმარებელი
+                            {t('აირჩიეთ მომხმარებელი')}
                         </p>
                     </div>
 
@@ -873,10 +880,18 @@ export default function UserSelection({ users }: Props) {
                                 <Plus className="h-5 w-5 text-primary" />
                             </div>
                             <span className="font-medium">
-                                ახალი მომხმარებელი
+                                {t('ახალი მომხმარებელი')}
                             </span>
                         </CardContent>
                     </Card>
+
+                    {/* After a reinstall the database is empty, but the
+                        backup in Downloads survives uninstalling. */}
+                    {platform === 'native' && (
+                        <Card className="mt-3 overflow-hidden py-0">
+                            <BackupActions showSave={false} />
+                        </Card>
+                    )}
                 </div>
             </div>
         </>

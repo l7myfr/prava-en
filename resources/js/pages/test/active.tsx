@@ -5,6 +5,7 @@ import {
     Check,
     ChevronLeft,
     ChevronRight,
+    EyeOff,
     Pause,
     Redo2,
     SkipForward,
@@ -19,6 +20,8 @@ import {
     useState,
 } from 'react';
 
+import { AnswerSettings } from '@/components/answer-settings';
+import { LanguageToggle } from '@/components/language-toggle';
 import { QuestionCard } from '@/components/question-card';
 import { SignsInfoDialog } from '@/components/signs-info-dialog';
 import {
@@ -33,6 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 interface Answer {
@@ -82,6 +86,8 @@ interface TestResultData {
         failure_threshold: number;
         auto_advance: boolean;
         shuffle_seed: number;
+        allow_answer_change?: boolean;
+        show_results?: boolean;
     };
     questions: TestQuestion[];
     current_question_index: number;
@@ -111,6 +117,8 @@ const formatTime = (seconds: number) => {
 };
 
 export default function ActiveTest({ testResult, userSettings }: Props) {
+    const { t } = useLanguage();
+
     // Calculate initial position: find where user left off and go to the next unanswered question
     const getInitialIndex = () => {
         const answers = testResult.answers_given || {};
@@ -211,6 +219,15 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
     const currentQuestion = questions[currentIndex];
     const currentAnswer = answersGiven[currentQuestion.id];
     const isAnswered = !!currentAnswer;
+    const canChangeAnswer = !!testResult.configuration.allow_answer_change;
+    const isLocked = isAnswered && !canChangeAnswer;
+    const [showResults, setShowResults] = useState(
+        testResult.configuration.show_results ?? true,
+    );
+    // Hidden results come back once every question has an answer.
+    const resultsVisible =
+        showResults ||
+        Object.keys(answersGiven).length >= testResult.total_questions;
     const allowedWrong = testResult.allowed_wrong;
 
     // Build answer state for QuestionCard
@@ -313,7 +330,9 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
 
     const handleAnswer = useCallback(
         async (answerId: number) => {
-            if (isAnswered || isSubmitting) return;
+            if (isLocked || isSubmitting) return;
+            if (currentAnswer?.answer_id === answerId) return;
+            const isChange = isAnswered;
 
             // Clear any pending auto-advance timeout
             if (autoAdvanceRef.current) {
@@ -353,8 +372,12 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                 // Check if exceeded mistakes (show dialog only once)
                 if (data.has_exceeded_mistakes && !hasFailed) {
                     setHasFailed(true);
-                    setShowFailedDialog(true);
+                    // With results hidden the failure stays hidden too
+                    if (resultsVisible) setShowFailedDialog(true);
                 }
+
+                // Changing an answer keeps you on the question
+                if (isChange) return;
 
                 // Determine next question to navigate to
                 const nextSequentialIndex = currentIndex + 1;
@@ -396,6 +419,9 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
             testResult.id,
             remainingTime,
             isAnswered,
+            isLocked,
+            resultsVisible,
+            currentAnswer,
             isSubmitting,
             hasFailed,
             autoAdvance,
@@ -555,7 +581,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
 
     return (
         <div className="fixed inset-0 flex flex-col bg-background">
-            <Head title="ტესტი" />
+            <Head title={t('ტესტი')} />
 
             {/* Header - 2 rows */}
             <header
@@ -581,22 +607,40 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     </div>
 
                     {/* Score */}
-                    <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1.5 text-base font-medium text-green-600 dark:text-green-400">
-                            <Check className="h-5 w-5" />
-                            {correctCount}
+                    {resultsVisible ? (
+                        <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1.5 text-base font-medium text-green-600 dark:text-green-400">
+                                <Check className="h-5 w-5" />
+                                {correctCount}
+                            </span>
+                            <span className="flex items-center gap-1.5 text-base font-medium text-red-600 dark:text-red-400">
+                                <X className="h-5 w-5" />
+                                {wrongCount}/{allowedWrong}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                            <EyeOff className="h-4 w-4" />
+                            {t('{answered}/{total} პასუხი', {
+                                answered: Object.keys(answersGiven).length,
+                                total: testResult.total_questions,
+                            })}
                         </span>
-                        <span className="flex items-center gap-1.5 text-base font-medium text-red-600 dark:text-red-400">
-                            <X className="h-5 w-5" />
-                            {wrongCount}/{allowedWrong}
-                        </span>
-                    </div>
+                    )}
 
                     {/* Question count */}
                     <div className="min-w-[70px] text-right text-xl font-bold">
                         {currentIndex + 1}/{testResult.total_questions}
                     </div>
                 </div>
+
+                <AnswerSettings
+                    className="mx-auto w-full max-w-3xl justify-center border-t px-3 py-1"
+                    allowChange={canChangeAnswer}
+                    changeLocked={testResult.test_type === 'quick'}
+                    showResults={showResults}
+                    onShowResults={setShowResults}
+                />
 
                 {/* Row 2: Pause (left), Auto-advance toggle (center), Skip (right) */}
                 <div className="mx-auto flex w-full max-w-3xl items-center justify-between border-t bg-muted/30 px-3 py-1.5">
@@ -609,6 +653,8 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     >
                         <Pause className="h-4 w-4" />
                     </Button>
+
+                    <LanguageToggle />
 
                     {/* Auto-advance Toggle */}
                     <label
@@ -655,6 +701,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                         questionNumber={currentIndex + 1}
                         shuffleSeed={testResult.configuration.shuffle_seed}
                         answerState={answerState}
+                        hideResult={!resultsVisible}
                         isBookmarked={
                             bookmarkedQuestions[currentQuestion.id] || false
                         }
@@ -704,7 +751,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                                         hasAnswer && handleAnswer(answer.id)
                                     }
                                     disabled={
-                                        !hasAnswer || isAnswered || isSubmitting
+                                        !hasAnswer || isLocked || isSubmitting
                                     }
                                     className={cn(
                                         'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-base font-bold transition-colors sm:h-11 sm:w-11 sm:text-lg',
@@ -715,26 +762,36 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                                         hasAnswer &&
                                             !isAnswered &&
                                             'border-border bg-background hover:border-primary hover:bg-accent',
+                                        // Results hidden - only mark the pick
+                                        hasAnswer &&
+                                            isAnswered &&
+                                            !resultsVisible &&
+                                            (isSelected
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border bg-background'),
                                         // Answered - show correct answer in green
                                         hasAnswer &&
                                             isAnswered &&
+                                            resultsVisible &&
                                             isCorrectAnswer &&
                                             'border-green-500 bg-green-500 text-white',
                                         // Answered - show selected wrong answer in red
                                         hasAnswer &&
                                             isAnswered &&
+                                            resultsVisible &&
                                             isSelected &&
                                             !currentAnswer?.is_correct &&
                                             'border-red-500 bg-red-500 text-white',
                                         // Answered - dim other answers
                                         hasAnswer &&
                                             isAnswered &&
+                                            resultsVisible &&
                                             !isCorrectAnswer &&
                                             !isSelected &&
                                             'border-border opacity-50',
                                         // Disabled state (answered or submitting)
                                         hasAnswer &&
-                                            (isAnswered || isSubmitting) &&
+                                            (isLocked || isSubmitting) &&
                                             'cursor-not-allowed',
                                     )}
                                 >
@@ -751,7 +808,7 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                             onClick={handleComplete}
                             className="h-10 shrink-0 px-3 text-sm sm:h-11 sm:px-4 sm:text-base"
                         >
-                            დასრულება
+                            {t('დასრულება')}
                         </Button>
                     ) : (
                         <Button
@@ -787,16 +844,19 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>ტესტის შეჩერება?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('ტესტის შეჩერება?')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            თქვენი პროგრესი შეინახება და შეძლებთ მოგვიანებით
-                            გაგრძელებას.
+                            {t(
+                                'თქვენი პროგრესი შეინახება და შეძლებთ მოგვიანებით გაგრძელებას.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>გაგრძელება</AlertDialogCancel>
+                        <AlertDialogCancel>{t('გაგრძელება')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handlePause}>
-                            შეჩერება
+                            {t('შეჩერება')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -811,20 +871,22 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2 text-red-600">
                             <AlertTriangle className="h-5 w-5" />
-                            შეცდომების ლიმიტი გადააჭარბეთ
+                            {t('შეცდომების ლიმიტი გადააჭარბეთ')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            თქვენ გადააჭარბეთ დასაშვებ შეცდომებს ({allowedWrong}
-                            ). ტესტი ჩაითვლება ჩაჭრილად, მაგრამ შეგიძლიათ
-                            ვარჯიშის მიზნით გააგრძელოთ.
+                            {t('თქვენ გადააჭარბეთ დასაშვებ შეცდომებს (')}
+                            {allowedWrong}
+                            {t(
+                                '). ტესტი ჩაითვლება ჩაჭრილად, მაგრამ შეგიძლიათ ვარჯიშის მიზნით გააგრძელოთ.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={handleComplete}>
-                            ტესტის დასრულება
+                            {t('ტესტის დასრულება')}
                         </AlertDialogCancel>
                         <AlertDialogAction>
-                            ვარჯიშის გაგრძელება
+                            {t('ვარჯიშის გაგრძელება')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -839,19 +901,20 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                     <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2 text-orange-600">
                             <AlertTriangle className="h-5 w-5" />
-                            დრო ამოიწურა!
+                            {t('დრო ამოიწურა!')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            ტესტის დრო ამოიწურა. ტესტი ჩაითვლება ჩაჭრილად,
-                            მაგრამ შეგიძლიათ ვარჯიშის მიზნით გააგრძელოთ.
+                            {t(
+                                'ტესტის დრო ამოიწურა. ტესტი ჩაითვლება ჩაჭრილად, მაგრამ შეგიძლიათ ვარჯიშის მიზნით გააგრძელოთ.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={handleComplete}>
-                            ტესტის დასრულება
+                            {t('ტესტის დასრულება')}
                         </AlertDialogCancel>
                         <AlertDialogAction>
-                            ვარჯიშის გაგრძელება
+                            {t('ვარჯიშის გაგრძელება')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -865,11 +928,11 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            გამოტოვებული კითხვები
+                            {t('გამოტოვებული კითხვები')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            თქვენ გაქვთ {unansweredIndices.length} უპასუხო
-                            კითხვა. აირჩიეთ რომელზე გადახვიდეთ:
+                            {t('თქვენ გაქვთ')} {unansweredIndices.length}{' '}
+                            {t('უპასუხო კითხვა. აირჩიეთ რომელზე გადახვიდეთ:')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
@@ -880,15 +943,15 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                                 size="sm"
                                 onClick={() => goToQuestion(index)}
                             >
-                                კითხვა {index + 1}
+                                {t('კითხვა')} {index + 1}
                             </Button>
                         ))}
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>დახურვა</AlertDialogCancel>
+                        <AlertDialogCancel>{t('დახურვა')}</AlertDialogCancel>
                         {allAnswered && (
                             <AlertDialogAction onClick={handleComplete}>
-                                ტესტის დასრულება
+                                {t('ტესტის დასრულება')}
                             </AlertDialogAction>
                         )}
                     </AlertDialogFooter>

@@ -46,6 +46,11 @@ FILE_COPIES = [
         "src": SOURCES / "SecureStorageFunctions.kt",
         "dst": JAVA / "bridge/functions/SecureStorageFunctions.kt",
     },
+    {
+        "name": "BackupFunctions.kt: progress backup that survives uninstalling",
+        "src": SOURCES / "BackupFunctions.kt",
+        "dst": JAVA / "bridge/functions/BackupFunctions.kt",
+    },
 ]
 
 GUARD = '''            Handler(Looper.getMainLooper()).post {
@@ -156,6 +161,27 @@ PATCHES = [
         "applied": 'registry.register("SecureStorage.Set"',
         "why": "Without these the bridge answers METHOD_NOT_FOUND and device sign-in "
                "cannot store its Sanctum token.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: import BackupFunctions",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",
+        "new": "import com.nativephp.mobile.bridge.functions.BackupFunctions\n"
+               "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",
+        "applied": "import com.nativephp.mobile.bridge.functions.BackupFunctions",
+        "why": "Pairs with the Backup.* registrations below.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: register Backup.*",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": '    registry.register("System.OpenAppSettings", SystemFunctions.OpenAppSettings(context))\n',
+        "new": '    registry.register("System.OpenAppSettings", SystemFunctions.OpenAppSettings(context))\n'
+               '    registry.register("Backup.Save", BackupFunctions.Save(context))\n'
+               '    registry.register("Backup.Pick", BackupFunctions.Pick(activity))\n'
+               '    registry.register("Backup.Read", BackupFunctions.Read(context))\n',
+        "applied": 'registry.register("Backup.Save"',
+        "why": "Uninstalling deletes the app database; the backup file in Downloads "
+               "is what lets progress come back after a reinstall.",
     },
     {
         "name": "BridgeFunctionRegistration: import ReviewFunctions",

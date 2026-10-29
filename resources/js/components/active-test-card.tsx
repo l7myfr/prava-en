@@ -3,6 +3,7 @@ import { ChevronRight, Clock, Play } from 'lucide-react';
 
 import { getLicenseTypeIcon } from '@/components/license-type-select';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/use-language';
 
 interface LicenseType {
     id: number;
@@ -47,13 +48,15 @@ export function ActiveTestCard({
     onClick,
     asLink = true,
 }: ActiveTestCardProps) {
+    const { t } = useLanguage();
+
     const content = (
         <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/20">
                 <Play className="h-6 w-6 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-                <span className="font-medium">გაგრძელება</span>
+                <span className="font-medium">{t('გაგრძელება')}</span>
                 {/* Progress and time row */}
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span>
@@ -67,7 +70,7 @@ export function ActiveTestCard({
                 {/* Tags row - below progress */}
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs text-primary">
-                        {getTestTypeName(activeTest.test_type)}
+                        {t(getTestTypeName(activeTest.test_type))}
                     </span>
                     <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                         {activeTest.license_type ? (
@@ -82,7 +85,7 @@ export function ActiveTestCard({
                                     `, ${activeTest.license_type.children.map((c) => c.code).join(', ')}`}
                             </>
                         ) : (
-                            'ყველა'
+                            t('ყველა')
                         )}
                     </span>
                 </div>

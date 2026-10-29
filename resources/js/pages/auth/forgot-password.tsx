@@ -5,10 +5,13 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/use-language';
 import AuthLayout from '@/layouts/auth-layout';
 
 /** Web build only: literal paths, see auth/welcome.tsx. */
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t } = useLanguage();
+
     const form = useForm({ email: '' });
 
     const submit = (event: FormEvent) => {
@@ -18,10 +21,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
     return (
         <AuthLayout
-            title="პაროლის აღდგენა"
-            description="გამოგიგზავნით ბმულს პაროლის შესაცვლელად"
+            title={t('პაროლის აღდგენა')}
+            description={t('გამოგიგზავნით ბმულს პაროლის შესაცვლელად')}
         >
-            <Head title="პაროლის აღდგენა" />
+            <Head title={t('პაროლის აღდგენა')} />
 
             {status && (
                 <div className="text-center text-sm font-medium text-green-600">
@@ -31,7 +34,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                    <Label htmlFor="email">ელფოსტა</Label>
+                    <Label htmlFor="email">{t('ელფოსტა')}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -49,13 +52,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     className="w-full"
                     disabled={form.processing}
                 >
-                    {form.processing ? 'იგზავნება...' : 'ბმულის გამოგზავნა'}
+                    {form.processing
+                        ? t('იგზავნება...')
+                        : t('ბმულის გამოგზავნა')}
                 </Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground">
                 <Link href="/login" className="underline underline-offset-4">
-                    დაბრუნება შესვლაზე
+                    {t('დაბრუნება შესვლაზე')}
                 </Link>
             </p>
         </AuthLayout>
