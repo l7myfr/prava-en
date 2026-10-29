@@ -30,6 +30,13 @@ import {
 } from '#nativephp';
 import { BackupActions } from '@/components/backup-actions';
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
+import {
+    type Accent,
+    accents,
+    type TextSize,
+    textSizes,
+    useCustomization,
+} from '@/hooks/use-customization';
 import { useLanguage } from '@/hooks/use-language';
 import { useOpenExternal } from '@/hooks/use-open-external';
 import { cn } from '@/lib/utils';
@@ -51,7 +58,6 @@ import {
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
-
 
 interface SettingsSheetProps {
     open: boolean;
@@ -206,6 +212,78 @@ function ThemeToggle() {
                     )}
                 >
                     <Icon className="h-5 w-5" />
+                </button>
+            ))}
+        </div>
+    );
+}
+
+const accentSwatches: Record<Accent, string> = {
+    default: 'oklch(0.45 0 0)',
+    blue: 'oklch(0.546 0.245 262.881)',
+    green: 'oklch(0.527 0.154 150.069)',
+    teal: 'oklch(0.511 0.096 186.391)',
+    purple: 'oklch(0.541 0.281 293.009)',
+    orange: 'oklch(0.553 0.195 38.402)',
+    rose: 'oklch(0.586 0.253 17.585)',
+};
+
+function AccentPicker() {
+    const { t } = useLanguage();
+    const { accent, setAccent } = useCustomization();
+
+    return (
+        <div className="flex flex-wrap gap-2.5">
+            {accents.map((value) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAccent(value)}
+                    aria-pressed={accent === value}
+                    className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-full ring-offset-2 ring-offset-background transition-all',
+                        accent === value && 'ring-2 ring-foreground',
+                    )}
+                    style={{ backgroundColor: accentSwatches[value] }}
+                >
+                    {accent === value && (
+                        <Check className="h-4 w-4 text-white" />
+                    )}
+                    <span className="sr-only">
+                        {t(value === 'default' ? 'ნაგულისხმევი' : value)}
+                    </span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+const textSizeLabels: Record<TextSize, string> = {
+    small: 'text-xs',
+    normal: 'text-sm',
+    large: 'text-base',
+    xlarge: 'text-lg',
+};
+
+function TextSizePicker() {
+    const { textSize, setTextSize } = useCustomization();
+
+    return (
+        <div className="flex gap-2">
+            {textSizes.map((value) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => setTextSize(value)}
+                    className={cn(
+                        'flex h-11 flex-1 items-center justify-center rounded-xl font-semibold transition-all',
+                        textSizeLabels[value],
+                        textSize === value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+                    )}
+                >
+                    Aa
                 </button>
             ))}
         </div>
@@ -401,12 +479,26 @@ function MainView({
                     />
                 </div>
 
-                {/* Theme section */}
-                <div className="border-t px-4 py-4">
-                    <h4 className="mb-3 text-sm font-medium text-muted-foreground">
-                        {t('თემა')}
-                    </h4>
-                    <ThemeToggle />
+                {/* Appearance: mode, accent colour and text size */}
+                <div className="space-y-4 border-t px-4 py-4">
+                    <div>
+                        <h4 className="mb-3 text-sm font-medium text-muted-foreground">
+                            {t('თემა')}
+                        </h4>
+                        <ThemeToggle />
+                    </div>
+                    <div>
+                        <h4 className="mb-3 text-sm font-medium text-muted-foreground">
+                            {t('ფერი')}
+                        </h4>
+                        <AccentPicker />
+                    </div>
+                    <div>
+                        <h4 className="mb-3 text-sm font-medium text-muted-foreground">
+                            {t('ტექსტის ზომა')}
+                        </h4>
+                        <TextSizePicker />
+                    </div>
                 </div>
             </div>
 

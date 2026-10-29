@@ -6,6 +6,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initializeTheme } from './hooks/use-appearance';
+import { initializeCustomization } from './hooks/use-customization';
 import { initializeLanguage } from './hooks/use-language';
 
 // Cache prefetched pages for 5 minutes to improve navigation speed
@@ -56,3 +57,4 @@ createInertiaApp({
 // This will set light / dark mode on load...
 initializeTheme();
 initializeLanguage();
+initializeCustomization();

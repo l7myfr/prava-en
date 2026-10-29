@@ -234,3 +234,68 @@
         height: auto;
     }
 }
+
+/* Customisation (Settings → Appearance). Accent overrides the primary colour
+   in both modes; :root[...] outranks .dark so it applies in dark mode too. */
+:root[data-accent='blue'] {
+    --primary: oklch(0.546 0.245 262.881);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.623 0.214 259.815);
+}
+:root.dark[data-accent='blue'] {
+    --primary: oklch(0.623 0.214 259.815);
+}
+:root[data-accent='green'] {
+    --primary: oklch(0.527 0.154 150.069);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.627 0.194 149.214);
+}
+:root.dark[data-accent='green'] {
+    --primary: oklch(0.723 0.219 149.579);
+    --primary-foreground: oklch(0.205 0 0);
+}
+:root[data-accent='teal'] {
+    --primary: oklch(0.511 0.096 186.391);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.6 0.118 184.704);
+}
+:root.dark[data-accent='teal'] {
+    --primary: oklch(0.704 0.14 182.503);
+    --primary-foreground: oklch(0.205 0 0);
+}
+:root[data-accent='purple'] {
+    --primary: oklch(0.541 0.281 293.009);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.606 0.25 292.717);
+}
+:root.dark[data-accent='purple'] {
+    --primary: oklch(0.606 0.25 292.717);
+}
+:root[data-accent='orange'] {
+    --primary: oklch(0.553 0.195 38.402);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.646 0.222 41.116);
+}
+:root.dark[data-accent='orange'] {
+    --primary: oklch(0.705 0.213 47.604);
+    --primary-foreground: oklch(0.205 0 0);
+}
+:root[data-accent='rose'] {
+    --primary: oklch(0.586 0.253 17.585);
+    --primary-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.645 0.246 16.439);
+}
+:root.dark[data-accent='rose'] {
+    --primary: oklch(0.645 0.246 16.439);
+}
+
+/* Text size scales the whole interface, which is sized in rem. */
+:root[data-text-size='small'] {
+    font-size: 14.5px;
+}
+:root[data-text-size='large'] {
+    font-size: 17.5px;
+}
+:root[data-text-size='xlarge'] {
+    font-size: 19px;
+}

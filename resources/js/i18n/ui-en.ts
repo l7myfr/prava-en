@@ -303,4 +303,7 @@ export const uiEnglish: Record<string, string> = {
         'When off, right/wrong appears after you answer every question',
     '{answered}/{total} პასუხი': '{answered}/{total} answered',
     'შედეგის ჩვენება': 'Show results',
+    ფერი: 'Colour',
+    'ტექსტის ზომა': 'Text size',
+    ნაგულისხმევი: 'Default',
 };
