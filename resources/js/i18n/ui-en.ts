@@ -353,4 +353,8 @@ export const uiEnglish: Record<string, string> = {
     'ამ ტესტში წესები გამორთულია': 'Rules are off for this test',
     'ტესტის შექმნისას ჩართე „წესები ტესტის დროს“, რომ ტესტის შიგნიდან ჩაიხედო.':
         'Turn on "Rules during the test" when you set up a test to use them inside it.',
+    'ახალი კითხვა': 'New question',
+    ძებნა: 'Search',
+    'ბილეთის ნომრით ძებნა, მაგ. 1234': 'Find a card by number, e.g. 1234',
+    'ბილეთი #{number} ვერ მოიძებნა': 'Card #{number} not found',
 };

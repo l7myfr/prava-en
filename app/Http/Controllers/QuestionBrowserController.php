@@ -191,6 +191,14 @@ class QuestionBrowserController extends Controller
             });
         }
 
+        // Looking a card up by its official number ignores every other filter
+        $ticketNumber = $request->integer('ticket') ?: null;
+        if ($ticketNumber) {
+            $query = Question::query()
+                ->with(['answers' => fn ($q) => $q->orderBy('position'), 'questionCategory', 'licenseTypes', 'signs'])
+                ->where('ticket_number', $ticketNumber);
+        }
+
         $query->orderBy('questions.id');
 
         // Opened from a topic: start on the page holding the first question
@@ -269,6 +277,7 @@ class QuestionBrowserController extends Controller
                 'unanswered' => $showUnanswered,
                 'per_page' => (int) $perPage,
                 'sign_id' => $sign?->id,
+                'ticket' => $ticketNumber,
             ],
             'filterSign' => $sign ? [
                 'id' => $sign->id,

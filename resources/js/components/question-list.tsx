@@ -30,11 +30,10 @@ export function QuestionList({
 
     return (
         <div className="space-y-4">
-            {questions.map((question, index) => (
+            {questions.map((question) => (
                 <QuestionCard
                     key={question.id}
                     question={question}
-                    questionNumber={index + 1}
                     shuffleSeed={shuffleSeed}
                     answerState={answerStates[question.id]}
                     isBookmarked={false}

@@ -35,6 +35,8 @@ export interface Question {
     image_custom: string | null;
     is_short_image: boolean;
     is_active?: boolean;
+    /** Official number on teoria.on.ge; null for questions it doesn't list. */
+    ticket_number?: number | null;
     answers: Answer[];
     question_category: QuestionCategory;
     signs: Sign[];
@@ -50,7 +52,6 @@ interface AnswerState {
 
 interface QuestionCardProps {
     question: Question;
-    questionNumber: number;
     shuffleSeed: number;
     answerState?: AnswerState;
     isBookmarked: boolean;
@@ -71,7 +72,6 @@ interface QuestionCardProps {
 
 export function QuestionCard({
     question,
-    questionNumber,
     shuffleSeed = 0.5,
     answerState,
     isBookmarked,
@@ -150,11 +150,12 @@ export function QuestionCard({
                 {/* Question Header */}
                 <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="rounded bg-muted px-2 py-1 text-xs font-medium">
-                            #{questionNumber}
+                        <span className="rounded bg-muted px-2 py-1 text-xs font-medium tabular-nums">
+                            {question.ticket_number
+                                ? `#${question.ticket_number}`
+                                : t('ახალი კითხვა')}
                         </span>
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            ID: {question.id}
                             {question.is_active === false && (
                                 <TriangleAlert className="h-3.5 w-3.5 text-red-500" />
                             )}

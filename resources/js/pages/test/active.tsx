@@ -726,7 +726,6 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
                 <div className="mx-auto w-full max-w-3xl">
                     <QuestionCard
                         question={currentQuestion}
-                        questionNumber={currentIndex + 1}
                         shuffleSeed={testResult.configuration.shuffle_seed}
                         answerState={answerState}
                         hideResult={!resultsVisible}

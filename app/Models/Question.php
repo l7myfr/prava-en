@@ -22,6 +22,7 @@ class Question extends Model
         'is_short_image',
         'has_small_answers',
         'is_active',
+        'ticket_number',
     ];
 
     protected function casts(): array
@@ -56,5 +57,22 @@ class Question extends Model
     public function userProgress(): HasMany
     {
         return $this->hasMany(UserQuestionProgress::class);
+    }
+
+    /**
+     * Give each question of a test snapshot its official ticket number, read
+     * fresh from the bank so tests taken before numbers existed get them too.
+     *
+     * @param  array<int, array<string, mixed>>  $questions
+     * @return array<int, array<string, mixed>>
+     */
+    public static function withTicketNumbers(array $questions): array
+    {
+        $numbers = static::whereIn('id', array_column($questions, 'id'))->pluck('ticket_number', 'id');
+
+        return array_map(
+            fn (array $question): array => [...$question, 'ticket_number' => $numbers[$question['id']] ?? null],
+            $questions,
+        );
     }
 }

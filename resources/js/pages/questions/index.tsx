@@ -96,6 +96,8 @@ interface Filters {
     unanswered: boolean;
     per_page: number;
     sign_id: number | null;
+    /** Looking one card up by its official number. */
+    ticket: number | null;
 }
 
 interface FilterSign {
@@ -350,6 +352,9 @@ export default function QuestionsIndex({
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
     const [localFilters, setLocalFilters] = useState<Filters>(filters);
+    const [ticketQuery, setTicketQuery] = useState(
+        filters.ticket ? String(filters.ticket) : '',
+    );
     const [signsModalQuestion, setSignsModalQuestion] =
         useState<Question | null>(null);
     const [submittingQuestions, setSubmittingQuestions] = useState<Set<number>>(
@@ -971,6 +976,61 @@ export default function QuestionsIndex({
             </div>
 
             {/* Sign Filter Banner */}
+            {/* Find a card by its official number */}
+            <form
+                className="flex items-center gap-2 border-b px-4 py-2"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    const ticket = Number.parseInt(
+                        ticketQuery.replace(/\D/g, ''),
+                        10,
+                    );
+                    if (ticket > 0) {
+                        router.get('/questions', { ticket });
+                    }
+                }}
+            >
+                <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        inputMode="numeric"
+                        value={ticketQuery}
+                        onChange={(e) => setTicketQuery(e.target.value)}
+                        placeholder={t('ბილეთის ნომრით ძებნა, მაგ. 1234')}
+                        className="h-9 pr-9 pl-9"
+                    />
+                    {filters.ticket && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTicketQuery('');
+                                router.get(
+                                    '/questions',
+                                    formatFiltersForRequest(localFilters),
+                                );
+                            }}
+                            className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+                        >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">
+                                {t('ძებნის გასუფთავება')}
+                            </span>
+                        </button>
+                    )}
+                </div>
+                <Button type="submit" size="sm" className="h-9">
+                    {t('ძებნა')}
+                </Button>
+            </form>
+            {filters.ticket && questions.data.length === 0 && (
+                <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    {t('ბილეთი #{number} ვერ მოიძებნა', {
+                        number: filters.ticket,
+                    })}
+                </p>
+            )}
+
             {filterSign && (
                 <div className="flex items-center gap-3 border-b bg-muted/50 px-4 py-2">
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-background p-1">
@@ -1018,18 +1078,13 @@ export default function QuestionsIndex({
 
             {/* Questions List */}
             <div className="space-y-4 p-4">
-                {questions.data.map((question, index) => (
+                {questions.data.map((question) => (
                     <QuestionCard
                         key={question.id}
                         id={`question-${question.id}`}
                         allowAnswerChange={allowChange}
                         hideResult={!resultsVisible}
                         question={question}
-                        questionNumber={
-                            (questions.current_page - 1) * questions.per_page +
-                            index +
-                            1
-                        }
                         shuffleSeed={shuffleSeed}
                         answerState={answerStates[question.id]}
                         isBookmarked={bookmarkedQuestions[question.id] || false}

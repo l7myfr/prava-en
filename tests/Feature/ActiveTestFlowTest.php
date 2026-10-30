@@ -473,3 +473,15 @@ describe('Rules during a test', function () {
             ->and($similar->configuration['allow_answer_change'])->toBeTrue();
     });
 });
+
+describe('Official ticket numbers', function () {
+    it('shows each test question with its official number, even in tests saved before numbers existed', function () {
+        $this->questions->first()->update(['ticket_number' => 42]);
+
+        $this->actingAs($this->user)->get("/test/{$this->testResult->id}")
+            ->assertInertia(fn ($page) => $page
+                ->where('testResult.questions.0.ticket_number', 42)
+                ->where('testResult.questions.1.ticket_number', null)
+            );
+    });
+});

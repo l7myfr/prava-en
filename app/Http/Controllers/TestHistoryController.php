@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Question;
 use App\Models\TestResult;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -58,7 +60,7 @@ class TestHistoryController extends Controller
     /**
      * Display detailed view of a completed test.
      */
-    public function show(Request $request, TestResult $testResult): Response|\Illuminate\Http\RedirectResponse
+    public function show(Request $request, TestResult $testResult): Response|RedirectResponse
     {
         $user = $request->user();
 
@@ -78,7 +80,7 @@ class TestHistoryController extends Controller
                 'test_type' => $testResult->test_type,
                 'status' => $testResult->status,
                 'configuration' => $testResult->configuration,
-                'questions' => $testResult->questions_with_answers,
+                'questions' => Question::withTicketNumbers($testResult->questions_with_answers ?? []),
                 'answers_given' => $testResult->answers_given ?? [],
                 'correct_count' => $testResult->correct_count,
                 'wrong_count' => $testResult->wrong_count,

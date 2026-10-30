@@ -4,6 +4,7 @@ use App\Models\Answer;
 use App\Models\LicenseType;
 use App\Models\Question;
 use App\Models\QuestionCategory;
+use App\Models\Sign;
 use App\Models\User;
 use App\Models\UserQuestionProgress;
 
@@ -448,7 +449,7 @@ test('questions can be filtered by related sign', function () {
     $user = User::factory()->create();
     $category = QuestionCategory::factory()->create();
 
-    $sign = \App\Models\Sign::first();
+    $sign = Sign::first();
 
     // Count existing questions with this sign
     $existingCount = $sign->questions()->where('is_active', true)->count();
@@ -535,4 +536,27 @@ test('bookmark endpoint requires authentication', function () {
     $response = $this->postJson(route('questions.bookmark', $question));
 
     $response->assertUnauthorized();
+});
+
+test('a card can be found by its official ticket number, ignoring the other filters', function () {
+    $user = User::factory()->create();
+    $category = QuestionCategory::factory()->create();
+    Question::factory()->count(3)->for($category, 'questionCategory')->create();
+    $card = Question::factory()->for($category, 'questionCategory')->create(['ticket_number' => 99001, 'is_active' => false]);
+
+    $this->actingAs($user)->get(route('questions.index', ['ticket' => 99001]))
+        ->assertInertia(fn ($page) => $page
+            ->has('questions.data', 1)
+            ->where('questions.data.0.id', $card->id)
+            ->where('questions.data.0.ticket_number', 99001)
+            ->where('filters.ticket', 99001)
+        );
+});
+
+test('looking up a ticket number nobody has returns no cards', function () {
+    $user = User::factory()->create();
+    Question::factory()->for(QuestionCategory::factory(), 'questionCategory')->create(['ticket_number' => 99002]);
+
+    $this->actingAs($user)->get(route('questions.index', ['ticket' => 99003]))
+        ->assertInertia(fn ($page) => $page->has('questions.data', 0));
 });
