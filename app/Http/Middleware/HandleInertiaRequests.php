@@ -44,6 +44,8 @@ class HandleInertiaRequests extends Middleware
             // Lets the frontend hide device-only affordances (camera capture,
             // secure storage, the Play Store review prompt) on the web.
             'platform' => Platform::current(),
+            // Compared against the latest GitHub release by the update check
+            'appVersion' => config('nativephp.version'),
             'auth' => [
                 'user' => $request->user(),
             ],

@@ -357,4 +357,6 @@ export const uiEnglish: Record<string, string> = {
     ძებნა: 'Search',
     'ბილეთის ნომრით ძებნა, მაგ. 1234': 'Find a card by number, e.g. 1234',
     'ბილეთი #{number} ვერ მოიძებნა': 'Card #{number} not found',
+    'ხელმისაწვდომია განახლება': 'Update available',
+    ჩამოტვირთვა: 'Download',
 };

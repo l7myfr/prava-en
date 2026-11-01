@@ -302,7 +302,7 @@ class TestController extends Controller
                 // An official mock exam never allows these, like the real exam.
                 'allow_answer_change' => ! $isOfficialExam && $request->boolean('allow_answer_change'),
                 'allow_rules' => ! $isOfficialExam && $request->boolean('allow_rules'),
-                'show_results' => $request->boolean('show_results', true),
+                'show_results' => $request->boolean('show_results'),
             ],
             'questions_with_answers' => $questionsWithAnswers,
             'correct_count' => 0,

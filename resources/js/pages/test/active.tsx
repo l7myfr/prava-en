@@ -317,23 +317,6 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
         };
     }, [hasTimeExpired]);
 
-    // Handle back button during test
-    useEffect(() => {
-        const handlePopState = (e: PopStateEvent) => {
-            if (!backIsForPage(e)) return;
-            e.preventDefault();
-            window.history.pushState(null, '', window.location.href);
-            setShowPauseDialog(true);
-        };
-
-        window.history.pushState(null, '', window.location.href);
-        window.addEventListener('popstate', handlePopState);
-
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, []);
-
     // Cleanup auto-advance timeout on unmount
     useEffect(() => {
         return () => {
@@ -507,6 +490,23 @@ export default function ActiveTest({ testResult, userSettings }: Props) {
     const pauseOnHide = useEffectEvent(() => {
         handlePause();
     });
+
+    // Back saves the test and returns to where it was started from, once
+    // any open image, sheet or dialog has taken its own back press
+    useEffect(() => {
+        const handlePopState = (e: PopStateEvent) => {
+            if (!backIsForPage(e)) return;
+            window.history.pushState(null, '', window.location.href);
+            pauseOnHide();
+        };
+
+        window.history.pushState(null, '', window.location.href);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
 
     useEffect(() => {
         const handleVisibilityChange = () => {

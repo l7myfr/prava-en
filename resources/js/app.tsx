@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { initializeCustomization } from './hooks/use-customization';
 import { initializeLanguage } from './hooks/use-language';
+import { keepPageOnSameUrlBack } from './lib/back-layers';
 import { recordVisit } from './lib/back-navigation';
 
 // Cache prefetched pages for 5 minutes to improve navigation speed
@@ -62,3 +63,4 @@ initializeCustomization();
 
 // Remember the pages visited so back returns to where the user came from
 router.on('navigate', (event) => recordVisit(event.detail.page.url));
+keepPageOnSameUrlBack();

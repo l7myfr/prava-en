@@ -195,7 +195,7 @@ export default function TestIndex({
         category_ids: prefilled.categories || ([] as number[]),
         auto_advance: userDefaults.auto_advance ?? true,
         allow_answer_change: false,
-        show_results: true,
+        show_results: false,
         allow_rules: true,
     });
 

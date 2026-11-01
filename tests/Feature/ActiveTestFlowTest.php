@@ -418,6 +418,22 @@ describe('Showing results', function () {
         $test = TestResult::where('user_id', $this->user->id)->latest('id')->first();
         expect($test->configuration['show_results'])->toBeFalse();
     });
+
+    it('keeps right/wrong hidden until the end unless asked to show it', function () {
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+
+        $this->actingAs($this->user)->post('/test', [
+            'test_type' => 'thematic',
+            'question_count' => 2,
+            'time_per_question' => 60,
+            'failure_threshold' => 10,
+            'category_ids' => [$this->category->id],
+        ]);
+
+        $test = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect($test->id)->not->toBe($this->testResult->id)
+            ->and($test->configuration['show_results'])->toBeFalse();
+    });
 });
 
 describe('Rules during a test', function () {

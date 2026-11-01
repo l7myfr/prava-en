@@ -37,6 +37,8 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     licenseTypes: LicenseType[];
+    /** NATIVEPHP_APP_VERSION, e.g. 1.7.0; "DEBUG" for local builds */
+    appVersion: string;
     // Native navigation props (used by app.blade.php for NativePHP TopBar/BottomNav)
     pageTitle?: string;
     pageSubtitle?: string;

@@ -1,0 +1,121 @@
+name: android release
+
+# Builds the signed APK for a `vX.Y.Z` tag and publishes it as the release's
+# Prava-EN.apk, which the app's update check downloads. A manual run builds
+# the same APK as an artifact without publishing a release.
+#
+# Secrets: ANDROID_KEYSTORE_BASE64 (prava-release.jks), ANDROID_KEYSTORE_PASSWORD
+# and APP_KEY (the key earlier builds shipped with, so updates keep sessions).
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build, e.g. 1.7.1'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, zip, intl, mbstring
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Version
+        id: version
+        env:
+          REF_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+        run: |
+          version="${REF_VERSION#v}"
+          IFS=. read -r major minor patch <<< "$version"
+          # Always rises with the version, so every release installs over the last
+          code=$((major * 10000 + minor * 100 + patch))
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci --no-audit --no-fund
+
+      - name: Environment
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          VERSION: ${{ steps.version.outputs.version }}
+          CODE: ${{ steps.version.outputs.code }}
+        run: |
+          cp .env.example .env
+          sed -i 's/^APP_NAME=.*/APP_NAME="Prava EN"/' .env
+          sed -i 's/^NATIVEPHP_APP_ID=.*/NATIVEPHP_APP_ID=com.prava.bilingual/' .env
+          sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
+          {
+            echo "NATIVEPHP_ANDROID_MIN_SDK=26"
+            echo "NATIVEPHP_APP_VERSION=$VERSION"
+            # native:package adds one before building
+            echo "NATIVEPHP_APP_VERSION_CODE=$((CODE - 1))"
+          } >> .env
+
+      - name: Install the Android project
+        run: |
+          php artisan native:install android --no-interaction
+          python3 scripts/patch-nativephp-android.py
+
+      - name: Build the frontend
+        run: npm run build -- --mode=android
+
+      - name: Build the signed APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          php artisan native:package android --build-type=release \
+            --keystore="$RUNNER_TEMP/release.jks" \
+            --keystore-password="$KEYSTORE_PASSWORD" \
+            --key-alias=prava \
+            --key-password="$KEYSTORE_PASSWORD" \
+            --no-tty
+          mkdir -p dist
+          cp nativephp/android/app/build/outputs/apk/release/app-release.apk dist/Prava-EN.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Prava-EN-${{ steps.version.outputs.version }}
+          path: dist/Prava-EN.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish the release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/Prava-EN.apk --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/Prava-EN.apk \
+              --title "Prava EN $GITHUB_REF_NAME" --generate-notes
+          fi
