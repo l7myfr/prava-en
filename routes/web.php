@@ -16,6 +16,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestHistoryController;
 use App\Http\Controllers\TestTemplateController;
 use App\Http\Controllers\TopicController;
+use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserSelectionController;
 use App\Support\NativeMediaFile;
 use App\Support\Platform;
@@ -54,6 +55,9 @@ Route::middleware('native.only')->group(function () {
     Route::post('app-icon', [AppIconController::class, 'update'])->name('app-icon.update');
     Route::post('app-icon/photo', [AppIconController::class, 'photo'])->name('app-icon.photo');
     Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+    Route::post('update/download', [UpdateController::class, 'download'])->name('update.download');
+    Route::get('update/status', [UpdateController::class, 'show'])->name('update.status');
+    Route::post('update/install', [UpdateController::class, 'install'])->name('update.install');
 });
 
 Route::get('/auth/logout', function () {

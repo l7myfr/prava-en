@@ -18,7 +18,7 @@ import { LicenseTypeSelect } from '@/components/license-type-select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UpdateCard } from '@/components/update-card';
+import { UpdatePrompt } from '@/components/update-prompt';
 import { useLanguage } from '@/hooks/use-language';
 import MobileLayout from '@/layouts/mobile-layout';
 import { cn } from '@/lib/utils';
@@ -157,7 +157,7 @@ export default function Dashboard({
         <MobileLayout>
             <Head title={t('მთავარი')} />
             <div className="flex flex-col gap-4 p-4">
-                <UpdateCard />
+                <UpdatePrompt />
                 <HomeBanner />
 
                 {/* User Profile Card */}

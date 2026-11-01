@@ -359,4 +359,15 @@ export const uiEnglish: Record<string, string> = {
     'ბილეთი #{number} ვერ მოიძებნა': 'Card #{number} not found',
     'ხელმისაწვდომია განახლება': 'Update available',
     ჩამოტვირთვა: 'Download',
+    განახლება: 'Update',
+    'ჩამოიტვირთება ფონურად, შემდეგ Android შემოგთავაზებს დაყენებას.':
+        'It downloads in the background, then Android asks you to install it.',
+    'განახლება იტვირთება': 'Downloading update',
+    'განახლება მზადაა': 'Update ready',
+    დაყენება: 'Install',
+    'ჩამოტვირთვა ვერ მოხერხდა': 'Download failed',
+    'ხელახლა ცდა': 'Try again',
+    'ბრაუზერში გახსნა': 'Open in browser',
+    'დაუშვი Prava EN-ისთვის აპების დაყენება და დააჭირე „დაყენებას“.':
+        'Allow Prava EN to install apps, then tap Install.',
 };

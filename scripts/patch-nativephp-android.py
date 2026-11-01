@@ -309,6 +309,46 @@ PATCHES += [
     },
 ]
 
+# In-app update: download the release APK in the background, then hand it to
+# Android's installer through the cache FileProvider the template already has.
+FILE_COPIES.append({
+    "name": "UpdateFunctions.kt: in-app update download and install",
+    "src": SOURCES / "UpdateFunctions.kt",
+    "dst": JAVA / "bridge/functions/UpdateFunctions.kt",
+})
+
+PATCHES += [
+    {
+        "name": "AndroidManifest: permission to install the downloaded update",
+        "path": ANDROID / "app/src/main/AndroidManifest.xml",
+        "old": '    <uses-permission android:name="android.permission.INTERNET" />\n',
+        "new": '    <uses-permission android:name="android.permission.INTERNET" />\n'
+               '    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n',
+        "applied": "android.permission.REQUEST_INSTALL_PACKAGES",
+        "why": "Without it Android refuses to open the installer for the update.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: import UpdateFunctions",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": "import com.nativephp.mobile.bridge.functions.SystemFunctions\n",
+        "new": "import com.nativephp.mobile.bridge.functions.SystemFunctions\n"
+               "import com.nativephp.mobile.bridge.functions.UpdateFunctions\n",
+        "applied": "import com.nativephp.mobile.bridge.functions.UpdateFunctions",
+        "why": "Pairs with the Update.* registrations below.",
+    },
+    {
+        "name": "BridgeFunctionRegistration: register Update.*",
+        "path": JAVA / "bridge/BridgeFunctionRegistration.kt",
+        "old": '    registry.register("AppIcon.PinPhoto", AppIconFunctions.PinPhoto(context))\n',
+        "new": '    registry.register("AppIcon.PinPhoto", AppIconFunctions.PinPhoto(context))\n'
+               '    registry.register("Update.Download", UpdateFunctions.Download(context))\n'
+               '    registry.register("Update.Status", UpdateFunctions.Status())\n'
+               '    registry.register("Update.Install", UpdateFunctions.Install(activity))\n',
+        "applied": 'registry.register("Update.Download"',
+        "why": "Without these the update prompt can only fall back to the browser.",
+    },
+]
+
 
 def copy_added_files() -> int:
     failures = 0
