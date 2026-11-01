@@ -74,8 +74,7 @@ jobs:
           {
             echo "NATIVEPHP_ANDROID_MIN_SDK=26"
             echo "NATIVEPHP_APP_VERSION=$VERSION"
-            # native:package adds one before building
-            echo "NATIVEPHP_APP_VERSION_CODE=$((CODE - 1))"
+            echo "NATIVEPHP_APP_VERSION_CODE=$CODE"
           } >> .env
 
       - name: Install the Android project
