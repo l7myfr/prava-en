@@ -56,6 +56,14 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "code=$code" >> "$GITHUB_OUTPUT"
 
+      - name: Release notes
+        if: github.ref_type == 'tag'
+        run: |
+          test -s "release-notes/$GITHUB_REF_NAME.md" || {
+            echo "::error::Add release-notes/$GITHUB_REF_NAME.md describing the changes before tagging"
+            exit 1
+          }
+
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress --prefer-dist
@@ -112,9 +120,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          notes="release-notes/$GITHUB_REF_NAME.md"
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" dist/Prava-EN.apk --clobber
+            gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"
           else
             gh release create "$GITHUB_REF_NAME" dist/Prava-EN.apk \
-              --title "Prava EN $GITHUB_REF_NAME" --generate-notes
+              --title "Prava EN $GITHUB_REF_NAME" --notes-file "$notes"
           fi

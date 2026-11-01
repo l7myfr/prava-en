@@ -186,7 +186,7 @@ export default function Dashboard({
                                     }
                                     licenseTypes={licenseTypes}
                                     placeholder={t('აირჩიე კატეგორია')}
-                                    emptyLabel={t('არ არის არჩეული')}
+                                    emptyLabel={null}
                                     size="compact"
                                 />
                             </div>

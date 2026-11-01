@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureLicenseChosen;
 use App\Http\Middleware\EnsureNativePlatform;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'native.only' => EnsureNativePlatform::class,
+            'license.chosen' => EnsureLicenseChosen::class,
         ]);
 
         $middleware->web(append: [

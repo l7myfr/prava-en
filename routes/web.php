@@ -93,7 +93,7 @@ Route::get('/native-file/preview', function () {
 })->name('native.file.preview')->middleware('native.only');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('license.chosen');
 
     // Onboarding (license selection)
     Route::get('onboarding/license', [OnboardingController::class, 'licenseSelection'])->name('onboarding.license');

@@ -99,7 +99,7 @@ it('starts a guest session without registering', function () {
         ->and($guest->has_password)->toBeFalse();
 
     $this->assertAuthenticatedAs($guest);
-    $this->get('/dashboard')->assertOk();
+    $this->get('/dashboard')->assertRedirect(route('onboarding.license'));
 });
 
 it('hides guests from every user listing', function () {

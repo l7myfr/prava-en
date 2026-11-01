@@ -32,7 +32,8 @@ interface LicenseTypeSelectProps {
     onValueChange: (value: number | null) => void;
     licenseTypes: LicenseType[];
     placeholder?: string;
-    emptyLabel?: string;
+    /** null leaves out the "no licence" option */
+    emptyLabel?: string | null;
     showChildren?: boolean;
     triggerClassName?: string;
     size?: 'default' | 'compact';
@@ -133,7 +134,9 @@ export function LicenseTypeSelect({
                 <SelectValue placeholder={t(placeholder)} />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">{t(emptyLabel)}</SelectItem>
+                {emptyLabel !== null && (
+                    <SelectItem value="all">{t(emptyLabel)}</SelectItem>
+                )}
                 {licenseTypes.map((lt) => (
                     <SelectItem key={lt.id} value={lt.id.toString()}>
                         {formatLicenseDisplay(lt, size !== 'compact')}

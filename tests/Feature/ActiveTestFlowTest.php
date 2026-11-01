@@ -501,3 +501,34 @@ describe('Official ticket numbers', function () {
             );
     });
 });
+
+describe('Licence of a topic test', function () {
+    it('only asks questions for the chosen licence and its sub-licences', function () {
+        $this->testResult->update(['status' => TestResult::STATUS_PASSED, 'finished_at' => now()]);
+        $car = LicenseType::factory()->create(['code' => 'B']);
+        $quad = LicenseType::factory()->child($car->id)->create(['code' => 'B1']);
+        $tractor = LicenseType::factory()->create(['code' => 'T']);
+
+        $carQuestions = collect([$car, $car, $quad])->map(function (LicenseType $licence) {
+            $question = Question::factory()->create(['question_category_id' => $this->category->id]);
+            $question->licenseTypes()->attach($licence->id);
+
+            return $question->id;
+        });
+        Question::factory()->count(2)->create(['question_category_id' => $this->category->id])
+            ->each(fn (Question $question) => $question->licenseTypes()->attach($tractor->id));
+
+        $this->actingAs($this->user)->post('/test', [
+            'test_type' => 'thematic',
+            'license_type_id' => $car->id,
+            'question_count' => 20,
+            'time_per_question' => 60,
+            'failure_threshold' => 10,
+            'category_ids' => [$this->category->id],
+        ]);
+
+        $test = TestResult::where('user_id', $this->user->id)->latest('id')->first();
+        expect(collect($test->questions_with_answers)->pluck('id')->sort()->values()->all())
+            ->toBe($carQuestions->sort()->values()->all());
+    });
+});
