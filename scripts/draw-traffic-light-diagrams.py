@@ -112,11 +112,19 @@ TEXT = {
         "arrows": "Each arrow works only for its own direction. A green left arrow also lets you U-turn.",
         "arrows_cards": "Card #157",
         "t_title": "T-shaped light (buses, trams)",
-        "t": "Route vehicles only. Bottom + a top light: go that way. Only the 3 top lights: stop.",
+        "t": "Route vehicles in their own lane. Bottom + top-left: left, top-middle: straight, top-right: right. Only the 3 top: stop.",
         "t_go": "go straight", "t_stop": "stop",
         "t_cards": "Cards #183–185",
-        "rail_title": "Flashing reds: railway crossing, bridge, fire station",
-        "rail": "Two red lights flashing in turn (or one flashing red) mean stop.",
+        "rail_title": "Railway crossing, opening bridge, ferry, fire-station exit",
+        "rail": [("red", "Reds flashing in turn", "stop at the line or the light"),
+                 ("yellow", "Flashing yellow", "go on with special caution (#155)"),
+                 ("off", "Switched off", "go only if no train is in sight (#180)")],
+        "ped_title": "Pedestrian light",
+        "ped": "Red figure: don't cross. Green: cross. No pedestrian light? Cross only while cars have red. Ticking sound = red, steady sound = green.",
+        "ped_cards": "Law, article 29(6)",
+        "bike_title": "Bicycle light",
+        "bike": "2-3 lights, sometimes with a white plate showing a bicycle. Same colours as for cars. None? Cyclists follow the pedestrian light.",
+        "bike_cards": "Law, article 29(7)",
     },
     "ka": {
         "title": "განსაკუთრებული შუქნიშნები",
@@ -135,11 +143,19 @@ TEXT = {
         "arrows": "ყოველი ისარი მხოლოდ თავის მიმართულებაზე მოქმედებს. მწვანე მარცხენა ისარი მობრუნებასაც უშვებს.",
         "arrows_cards": "ბილეთი #157",
         "t_title": "T-სებური შუქნიშანი (სამარშრუტო)",
-        "t": "მხოლოდ სამარშრუტო ტრანსპორტისთვის. ქვედა + ზედა: წადი იმ მიმართულებით. მხოლოდ სამი ზედა: გაჩერდი.",
+        "t": "სამარშრუტო თავის ზოლში. ქვედა + ზედა მარცხენა: მარცხნივ, შუა: პირდაპირ, მარჯვენა: მარჯვნივ. მხოლოდ სამი ზედა: გაჩერდი.",
         "t_go": "წადი", "t_stop": "გაჩერდი",
         "t_cards": "ბილეთები #183–185",
-        "rail_title": "მოციმციმე წითელი: რკინიგზა, ხიდი, სახანძრო",
-        "rail": "ორი წითელი რიგრიგობით ციმციმებს (ან ერთი მოციმციმე წითელი): გაჩერდი.",
+        "rail_title": "რკინიგზა, გასახსნელი ხიდი, ბორანი, სახანძრო",
+        "rail": [("red", "წითლები რიგრიგობით", "გაჩერდი ხაზთან ან შუქნიშანთან"),
+                 ("yellow", "მოციმციმე ყვითელი", "გააგრძელე განსაკუთრებული სიფრთხილით (#155)"),
+                 ("off", "გამორთულია", "წადი, თუ მატარებელი არ ჩანს (#180)")],
+        "ped_title": "ქვეითის შუქნიშანი",
+        "ped": "წითელი: ნუ გადახვალ. მწვანე: გადადი. ქვეითის შუქნიშანი არ არის? გადადი, როცა მანქანებს წითელი აქვთ. წყვეტილი ხმა = წითელი, უწყვეტი = მწვანე.",
+        "ped_cards": "კანონი, მუხლი 29(6)",
+        "bike_title": "ველოსიპედის შუქნიშანი",
+        "bike": "2-3 სიგნალი, ზოგჯერ თეთრი დაფით ველოსიპედით. ფერები იგივეა. თუ არ არის, ველოსიპედისტი ქვეითის შუქნიშანს მიჰყვება.",
+        "bike_cards": "კანონი, მუხლი 29(7)",
     },
 }
 
@@ -204,17 +220,59 @@ def special_lights(lang):
         return (out + described(x + 130, y0 + 30, t["t_title"], t["t"], tw, wrap - 10)
                 + card_tag(x + 130, y0 + 208, t["t_cards"]))
 
+    def figure(cx, cy, colour, walking):
+        legs = (f"M{cx},{cy + 3} L{cx - 5},{cy + 11} M{cx},{cy + 3} L{cx + 5},{cy + 11}" if walking
+                else f"M{cx},{cy + 3} L{cx - 2},{cy + 11} M{cx},{cy + 3} L{cx + 2},{cy + 11}")
+        arms = (f"M{cx - 5},{cy - 1} L{cx},{cy - 4} L{cx + 5},{cy + 1}" if walking
+                else f"M{cx - 4},{cy - 3} L{cx - 4},{cy + 3} M{cx + 4},{cy - 3} L{cx + 4},{cy + 3}")
+        return (f'<circle cx="{cx}" cy="{cy - 9}" r="3" fill="{colour}"/>'
+                f'<path d="M{cx},{cy - 5} L{cx},{cy + 3} {legs} {arms}" fill="none" stroke="{colour}" '
+                f'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>')
+
+    def pedestrian(x, y0):
+        out = f'<rect x="{x + 34}" y="{y0 + 30}" width="52" height="100" rx="9" fill="{HOUSING}"/>'
+        for cy, colour, walking in ((y0 + 56, RED, False), (y0 + 104, GREEN, True)):
+            out += (f'<circle cx="{x + 60}" cy="{cy}" r="24" fill="{colour}" fill-opacity="0.18"/>'
+                    f'<circle cx="{x + 60}" cy="{cy}" r="19" fill="#1B1E23"/>' + figure(x + 60, cy + 1, colour, walking))
+        return (out + described(x + 130, y0 + 30, t["ped_title"], t["ped"], tw, wrap - 10)
+                + card_tag(x + 130, y0 + 208, t["ped_cards"]))
+
+    def bicycle(x, y0):
+        out = f'<rect x="{x + 40}" y="{y0 + 28}" width="40" height="96" rx="8" fill="{HOUSING}"/>'
+        for i, colour in enumerate((RED, YELLOW, GREEN)):
+            if i == 2:
+                out += lamp(x + 60, y0 + 46 + i * 30, colour, 11, True)
+            else:
+                out += f'<circle cx="{x + 60}" cy="{y0 + 46 + i * 30}" r="11" fill="{colour}" fill-opacity="0.35"/>'
+        bx, by = x + 34, y0 + 132
+        out += (f'<rect x="{bx}" y="{by}" width="52" height="34" rx="4" fill="#fff" stroke="{INK}" stroke-width="1.5"/>'
+                f'<circle cx="{bx + 15}" cy="{by + 22}" r="7" fill="none" stroke="{INK}" stroke-width="2"/>'
+                f'<circle cx="{bx + 37}" cy="{by + 22}" r="7" fill="none" stroke="{INK}" stroke-width="2"/>'
+                f'<path d="M{bx + 15},{by + 22} L{bx + 22},{by + 10} L{bx + 32},{by + 10} L{bx + 37},{by + 22} '
+                f'M{bx + 22},{by + 10} L{bx + 26},{by + 22} L{bx + 32},{by + 10} M{bx + 20},{by + 7} L{bx + 25},{by + 7}" '
+                f'fill="none" stroke="{INK}" stroke-width="2" stroke-linejoin="round"/>')
+        return (out + described(x + 130, y0 + 30, t["bike_title"], t["bike"], tw, wrap - 10)
+                + card_tag(x + 130, y0 + 208, t["bike_cards"]))
+
     two(extra, dark)
     two(arrows, t_light)
+    two(pedestrian, bicycle)
 
-    # Railway-crossing flashing reds, full width
-    svg += panel(24, y, 652, 110)
-    svg += f'<rect x="44" y="{y + 30}" width="96" height="48" rx="10" fill="{HOUSING}"/>'
-    svg += lamp(68, y + 54, RED, 15, True) + lamp(116, y + 54, OFF, 15)
-    svg += (f'<path d="M66,{y + 90} q26,10 52,0" fill="none" stroke="{GREY}" stroke-width="2"/>'
-            f'<path d="M112,{y + 86} l6,4 l-7,3" fill="none" stroke="{GREY}" stroke-width="2"/>')
-    svg += text(166, y + 40, t["rail_title"], 15, "bold") + wrapped(166, y + 64, t["rail"], 58 if lang == "en" else 52, 13)
-    y += 110
+    # Railway crossings and the like: the three states, full width
+    svg += panel(24, y, 652, 168) + text(40, y + 28, t["rail_title"], 16, "bold")
+    for i, (state, name, meaning) in enumerate(t["rail"]):
+        x = 40 + i * 214
+        svg += f'<rect x="{x}" y="{y + 46}" width="84" height="42" rx="10" fill="{HOUSING}"/>'
+        if state == "red":
+            svg += lamp(x + 22, y + 67, RED, 13, True) + lamp(x + 62, y + 67, OFF, 13)
+            svg += (f'<path d="M{x + 20},{y + 98} q22,9 44,0" fill="none" stroke="{GREY}" stroke-width="2"/>'
+                    f'<path d="M{x + 58},{y + 94} l6,4 l-7,3" fill="none" stroke="{GREY}" stroke-width="2"/>')
+        elif state == "yellow":
+            svg += lamp(x + 42, y + 67, YELLOW, 13, True)
+        else:
+            svg += lamp(x + 22, y + 67, OFF, 13) + lamp(x + 62, y + 67, OFF, 13)
+        svg += text(x, y + 124, name, 14, "bold") + wrapped(x, y + 142, meaning, 26 if lang == "en" else 24, 12.5, gap=15)
+    y += 168
 
     return frame(w, y + 24, t["title"], t["subtitle"]) + svg + "</svg>"
 
